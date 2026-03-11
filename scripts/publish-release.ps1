@@ -26,17 +26,19 @@ $uninstallPs1Path = Join-Path $packageDir "Uninstall-ClothingRecycler.ps1"
 $uninstallBatPath = Join-Path $packageDir "Uninstall-ClothingRecycler.bat"
 $readmePath = Join-Path $packageDir "README.txt"
 
-New-Item -ItemType Directory -Force -Path $publishRoot | Out-Null
-New-Item -ItemType Directory -Force -Path $installerPublishRoot | Out-Null
-New-Item -ItemType Directory -Force -Path $releaseRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $artifactsRoot | Out-Null
 
 if (Test-Path $publishRoot) {
-    Remove-Item -Path (Join-Path $publishRoot "*") -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path $publishRoot -Recurse -Force
 }
 
 if (Test-Path $installerPublishRoot) {
-    Remove-Item -Path (Join-Path $installerPublishRoot "*") -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path $installerPublishRoot -Recurse -Force
 }
+
+New-Item -ItemType Directory -Force -Path $publishRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $installerPublishRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $releaseRoot | Out-Null
 
 if (Test-Path $packageDir) {
     Remove-Item -Path $packageDir -Recurse -Force
@@ -66,7 +68,7 @@ dotnet publish $projectFile `
     -p:Version=$Version `
     -p:InformationalVersion=$Version `
     -p:PublishTrimmed=false `
-    -p:PublishReadyToRun=true `
+    -p:PublishReadyToRun=false `
     -o $publishRoot
 
 Copy-Item -Path (Join-Path $publishRoot "*") -Destination $packageDir -Recurse
