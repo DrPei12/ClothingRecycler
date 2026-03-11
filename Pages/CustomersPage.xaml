@@ -30,28 +30,28 @@
             <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5BA2;&#x6237;&#x603B;&#x6570;" />
-                    <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.TotalCustomerCountText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.TotalCustomerCountText, Mode=OneWay}" />
                 </StackPanel>
             </Border>
 
             <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4ECA;&#x65E5;&#x6D3B;&#x8DC3;&#x5BA2;&#x6237;" />
-                    <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.ActiveTodayCustomerCountText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.ActiveTodayCustomerCountText, Mode=OneWay}" />
                 </StackPanel>
             </Border>
 
             <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5165;&#x5E93;&#x5BA2;&#x6237;" />
-                    <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.InboundCustomerCountText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.InboundCustomerCountText, Mode=OneWay}" />
                 </StackPanel>
             </Border>
 
             <Border Grid.Column="3" Style="{StaticResource CardSurfaceStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x51FA;&#x5E93;&#x5BA2;&#x6237;" />
-                    <TextBlock FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.OutboundCustomerCountText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.OutboundCustomerCountText, Mode=OneWay}" />
                 </StackPanel>
             </Border>
         </Grid>
@@ -152,22 +152,22 @@
 
                                 <StackPanel Grid.Column="0" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x603B;&#x5355;&#x91CF;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCustomerOrderCountText, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCustomerOrderCountText, Mode=OneWay}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x5165;&#x5E93;&#x91D1;&#x989D;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCustomerInboundAmountText, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCustomerInboundAmountText, Mode=OneWay}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x51FA;&#x5E93;&#x91D1;&#x989D;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.SelectedCustomerOutboundAmountText, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.SelectedCustomerOutboundAmountText, Mode=OneWay}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="3" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x6700;&#x540E;&#x4EA4;&#x6613;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCustomerLastTransactionText, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCustomerLastTransactionText, Mode=OneWay}" />
                                 </StackPanel>
                             </Grid>
 

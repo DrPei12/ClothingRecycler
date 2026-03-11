@@ -4,20 +4,35 @@ namespace ClothingRecycler.Desktop.ViewModels
     {
         private readonly LocalDatabaseService _databaseService;
         private readonly AppLogger _logger;
+        private readonly AppUiSettingsService _uiSettingsService;
         private string _activeCategoryCountText = "0";
         private string _archivedCategoryCountText = "0";
         private string _lowStockCategoryCountText = "0";
         private string _consistencyStatusText = "未运行";
         private string _lastConsistencyCheckText = "尚未执行账本一致性检查。";
+        private FontSizeOptionModel? _selectedFontSizeOption;
 
-        public SettingsViewModel(LocalDatabaseService databaseService, AppLogger logger)
+        public SettingsViewModel(
+            LocalDatabaseService databaseService,
+            AppLogger logger,
+            AppUiSettingsService uiSettingsService)
         {
             _databaseService = databaseService;
             _logger = logger;
+            _uiSettingsService = uiSettingsService;
             Title = "\u8BBE\u7F6E";
+
+            FontSizeOptions.Add(new FontSizeOptionModel(AppFontSizePreset.Small, "小", "更紧凑，适合屏幕较小或希望一页显示更多内容。"));
+            FontSizeOptions.Add(new FontSizeOptionModel(AppFontSizePreset.Standard, "标准", "推荐默认大小，兼顾信息密度和易读性。"));
+            FontSizeOptions.Add(new FontSizeOptionModel(AppFontSizePreset.Large, "大", "更易读，适合远距离查看或视力负担较大的场景。"));
+
+            _selectedFontSizeOption = FontSizeOptions.FirstOrDefault(option => option.Preset == _uiSettingsService.CurrentFontSizePreset)
+                ?? FontSizeOptions[1];
         }
 
         public ObservableCollection<CategoryManagementItemModel> CategoryItems { get; } = [];
+
+        public ObservableCollection<FontSizeOptionModel> FontSizeOptions { get; } = [];
 
         public string DatabasePath => _databaseService.DatabasePath;
 
@@ -32,6 +47,8 @@ namespace ClothingRecycler.Desktop.ViewModels
         public string AppVersionText => AppReleaseInfo.VersionText;
 
         public string PackagingText => AppReleaseInfo.PackagingText;
+
+        public string UiSettingsPath => _uiSettingsService.SettingsFilePath;
 
         public string ActiveCategoryCountText
         {
@@ -61,6 +78,18 @@ namespace ClothingRecycler.Desktop.ViewModels
         {
             get => _lastConsistencyCheckText;
             private set => SetProperty(ref _lastConsistencyCheckText, value);
+        }
+
+        public FontSizeOptionModel? SelectedFontSizeOption
+        {
+            get => _selectedFontSizeOption;
+            set
+            {
+                if (SetProperty(ref _selectedFontSizeOption, value) && value is not null)
+                {
+                    _ = ApplyFontSizeOptionAsync(value);
+                }
+            }
         }
 
         public Visibility EmptyStateVisibility => CategoryItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -148,6 +177,16 @@ namespace ClothingRecycler.Desktop.ViewModels
         {
             await _databaseService.DeleteCategoryAsync(item.Id);
             await LoadAsync();
+        }
+
+        private async Task ApplyFontSizeOptionAsync(FontSizeOptionModel option)
+        {
+            if (_uiSettingsService.CurrentFontSizePreset == option.Preset)
+            {
+                return;
+            }
+
+            await _uiSettingsService.SetFontSizePresetAsync(option.Preset);
         }
     }
 }

@@ -32,7 +32,7 @@
             <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5E93;&#x5B58;&#x603B;&#x6210;&#x672C;" />
-                    <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.TotalInventoryCost, Mode=OneWay}" />
+                    <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.TotalInventoryCost, Mode=OneWay}" />
                 </StackPanel>
             </Border>
 
@@ -40,8 +40,7 @@
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x603B;&#x9884;&#x8BA1;&#x6536;&#x5165;" />
                     <TextBlock
-                        FontSize="24"
-                        FontWeight="SemiBold"
+                        Style="{StaticResource MetricValueTextStyle}"
                         Foreground="{StaticResource BrandBrush}"
                         Text="{x:Bind ViewModel.ForecastRevenue, Mode=OneWay}" />
                 </StackPanel>
@@ -50,7 +49,7 @@
             <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5206;&#x7C7B;&#x603B;&#x6570;" />
-                    <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
+                    <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
                 </StackPanel>
             </Border>
 
@@ -58,8 +57,7 @@
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4F4E;&#x5E93;&#x5B58;&#x5206;&#x7C7B;" />
                     <TextBlock
-                        FontSize="24"
-                        FontWeight="SemiBold"
+                        Style="{StaticResource MetricValueTextStyle}"
                         Foreground="{StaticResource DangerBrush}"
                         Text="{x:Bind ViewModel.LowStockCountText, Mode=OneWay}" />
                 </StackPanel>
@@ -200,32 +198,32 @@
 
                                 <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryStockText, Mode=OneWay}" />
+                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryStockText, Mode=OneWay}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x6536;&#x8D2D;&#x4EF7;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryBuyPriceText, Mode=OneWay}" />
+                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryBuyPriceText, Mode=OneWay}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x5356;&#x4EF7;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategorySellPriceText, Mode=OneWay}" />
+                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategorySellPriceText, Mode=OneWay}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x5E93;&#x5B58;&#x6210;&#x672C;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryInventoryCostText, Mode=OneWay}" />
+                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryInventoryCostText, Mode=OneWay}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.SelectedCategoryForecastRevenueText, Mode=OneWay}" />
+                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.SelectedCategoryForecastRevenueText, Mode=OneWay}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="1" Grid.Column="2" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x5355;&#x4EF7;&#x4EF7;&#x5DEE;" />
-                                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryPriceSpreadText, Mode=OneWay}" />
+                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryPriceSpreadText, Mode=OneWay}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">

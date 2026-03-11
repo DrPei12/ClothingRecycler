@@ -17,6 +17,8 @@ namespace ClothingRecycler.Desktop.Services
 
         public static string LogDirectory => Path.Combine(RootDirectory, "logs");
 
+        public static string UiSettingsPath => Path.Combine(RootDirectory, "ui-settings.json");
+
         public static void EnsureDirectories()
         {
             Directory.CreateDirectory(RootDirectory);

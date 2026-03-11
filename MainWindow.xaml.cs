@@ -18,11 +18,16 @@ namespace ClothingRecycler.Desktop
             ["forecast"] = new(typeof(ForecastPage), "\u9884\u8BA1\u6536\u5165"),
             ["settings"] = new(typeof(SettingsPage), "\u8BBE\u7F6E"),
         };
+        private readonly AppUiSettingsService _uiSettingsService;
+        private string _currentNavigationTag = "dashboard";
 
         public MainWindow()
         {
             InitializeComponent();
+            _uiSettingsService = App.GetService<AppUiSettingsService>();
+            _uiSettingsService.FontSizePresetChanged += OnFontSizePresetChanged;
             Title = "\u8863\u7269\u56DE\u6536\u7BA1\u7406";
+            ApplyShellFontSizing();
             ConfigureWindow();
             NavigateToDefault();
         }
@@ -82,18 +87,19 @@ namespace ClothingRecycler.Desktop
             }
         }
 
-        private void NavigateTo(string tag)
+        private void NavigateTo(string tag, bool forceReload = false)
         {
             if (!_navigationTargets.TryGetValue(tag, out var target))
             {
                 return;
             }
 
+            _currentNavigationTag = tag;
             RootNavigationView.Header = target.Header;
 
             if (target.Parameter is null)
             {
-                if (ContentFrame.CurrentSourcePageType != target.PageType)
+                if (forceReload || ContentFrame.CurrentSourcePageType != target.PageType)
                 {
                     ContentFrame.Navigate(target.PageType);
                 }
@@ -102,6 +108,24 @@ namespace ClothingRecycler.Desktop
             }
 
             ContentFrame.Navigate(target.PageType, target.Parameter);
+        }
+
+        private void OnFontSizePresetChanged(object? sender, AppFontSizePreset preset)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                ApplyShellFontSizing();
+                NavigateTo(_currentNavigationTag, forceReload: true);
+            });
+        }
+
+        private void ApplyShellFontSizing()
+        {
+            if (App.Current.Resources.TryGetValue("AppBodyFontSize", out var bodyFontSize) && bodyFontSize is double bodySize)
+            {
+                RootNavigationView.FontSize = bodySize;
+                ContentFrame.FontSize = bodySize;
+            }
         }
 
         private sealed record NavigationTarget(Type PageType, string Header, object? Parameter = null);

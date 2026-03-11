@@ -34,8 +34,12 @@ namespace ClothingRecycler.Desktop
         {
             try
             {
+                var uiSettingsService = GetService<AppUiSettingsService>();
+                uiSettingsService.Initialize();
+
                 await _logger.InitializeAsync();
                 await _logger.LogInfoAsync($"应用启动开始。版本 {AppReleaseInfo.VersionText}，模式：{AppReleaseInfo.PackagingText}。");
+                await _logger.LogInfoAsync($"界面字体预设：{uiSettingsService.CurrentFontSizePreset}。");
 
                 var databaseService = GetService<LocalDatabaseService>();
                 await databaseService.InitializeAsync();
@@ -57,6 +61,7 @@ namespace ClothingRecycler.Desktop
             var services = new ServiceCollection();
 
             services.AddSingleton<AppLogger>();
+            services.AddSingleton<AppUiSettingsService>();
             services.AddSingleton<LocalDatabaseService>();
             services.AddSingleton<MainWindow>();
 

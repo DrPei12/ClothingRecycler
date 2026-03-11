@@ -29,13 +29,32 @@
             <SolidColorBrush x:Key="PositiveBrush" Color="{ThemeResource PositiveColor}" />
             <SolidColorBrush x:Key="DangerBrush" Color="{ThemeResource DangerColor}" />
 
+            <x:Double x:Key="AppBodyFontSize">14</x:Double>
+            <x:Double x:Key="AppTableHeaderFontSize">12</x:Double>
+            <x:Double x:Key="AppBadgeFontSize">12</x:Double>
+            <x:Double x:Key="AppCompactListTitleFontSize">15</x:Double>
+            <x:Double x:Key="AppListTitleFontSize">16</x:Double>
+            <x:Double x:Key="AppSectionTitleFontSize">18</x:Double>
+            <x:Double x:Key="AppPageTitleFontSize">28</x:Double>
+            <x:Double x:Key="AppMetricFontSize">24</x:Double>
+            <x:Double x:Key="AppHeroMetricFontSize">26</x:Double>
+            <x:Double x:Key="AppDetailMetricFontSize">20</x:Double>
+
+            <Style TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{ThemeResource AppBodyFontSize}" />
+            </Style>
+
+            <Style TargetType="Control">
+                <Setter Property="FontSize" Value="{ThemeResource AppBodyFontSize}" />
+            </Style>
+
             <Style x:Key="PageTitleTextStyle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="28" />
+                <Setter Property="FontSize" Value="{ThemeResource AppPageTitleFontSize}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
             </Style>
 
             <Style x:Key="SectionTitleTextStyle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="18" />
+                <Setter Property="FontSize" Value="{ThemeResource AppSectionTitleFontSize}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
             </Style>
 
@@ -48,13 +67,43 @@
             </Style>
 
             <Style x:Key="TableHeaderTextStyle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontSize" Value="{ThemeResource AppTableHeaderFontSize}" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Opacity" Value="0.72" />
             </Style>
 
             <Style x:Key="MutedTextStyle" TargetType="TextBlock">
                 <Setter Property="Opacity" Value="0.72" />
+            </Style>
+
+            <Style x:Key="MetricValueTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{ThemeResource AppMetricFontSize}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="HeroMetricValueTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{ThemeResource AppHeroMetricFontSize}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="DetailMetricValueTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{ThemeResource AppDetailMetricFontSize}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="ListTitleTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{ThemeResource AppListTitleFontSize}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="CompactListTitleTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{ThemeResource AppCompactListTitleFontSize}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="BadgeTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{ThemeResource AppBadgeFontSize}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
             </Style>
         </ResourceDictionary>
     </Application.Resources>

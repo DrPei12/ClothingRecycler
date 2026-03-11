@@ -41,22 +41,22 @@
 
                         <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
                             <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="分类数" />
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Report.CategoryCount, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind Report.CategoryCount, Mode=OneWay}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="0" Grid.Column="1" Spacing="3">
                             <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="客户数" />
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Report.CustomerCount, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind Report.CustomerCount, Mode=OneWay}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="0" Spacing="3">
                             <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="订单数" />
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Report.OrderCount, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind Report.OrderCount, Mode=OneWay}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="1" Spacing="3">
                             <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="问题数" />
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Report.IssueCount, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind Report.IssueCount, Mode=OneWay}" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -81,7 +81,7 @@
                                     </StackPanel>
 
                                     <Border Grid.Column="1" Background="{ThemeResource AccentFillColorSecondaryBrush}" CornerRadius="999" Padding="10,4" VerticalAlignment="Center">
-                                        <TextBlock FontSize="12" Text="{x:Bind StatusText}" />
+                                        <TextBlock Style="{StaticResource BadgeTextStyle}" Text="{x:Bind StatusText}" />
                                     </Border>
                                 </Grid>
                             </DataTemplate>
@@ -108,7 +108,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <Border Grid.Column="0" Background="{StaticResource DangerBrush}" CornerRadius="999" Padding="10,4" VerticalAlignment="Top">
-                                        <TextBlock Foreground="White" FontSize="12" Text="{x:Bind SeverityText}" />
+                                        <TextBlock Style="{StaticResource BadgeTextStyle}" Foreground="White" Text="{x:Bind SeverityText}" />
                                     </Border>
 
                                     <StackPanel Grid.Column="1" Spacing="3">

@@ -34,22 +34,22 @@
 
                         <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
                             <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="识别行数" />
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Preview.TotalRowCount, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind Preview.TotalRowCount, Mode=OneWay}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="0" Grid.Column="1" Spacing="3">
                             <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="可导入" />
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Preview.ReadyToImportCount, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind Preview.ReadyToImportCount, Mode=OneWay}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="0" Spacing="3">
                             <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="新增 / 更新" />
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind SummaryActionText, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind SummaryActionText, Mode=OneWay}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="1" Spacing="3">
                             <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="问题数" />
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Preview.IssueCount, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind Preview.IssueCount, Mode=OneWay}" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -75,7 +75,7 @@
 
                                     <TextBlock Grid.Column="0" Opacity="0.72" Text="{x:Bind LineText}" VerticalAlignment="Center" />
                                     <Border Grid.Column="1" Background="{ThemeResource AccentFillColorSecondaryBrush}" CornerRadius="999" Padding="10,4">
-                                        <TextBlock FontSize="12" Text="{x:Bind ActionText}" />
+                                        <TextBlock Style="{StaticResource BadgeTextStyle}" Text="{x:Bind ActionText}" />
                                     </Border>
                                     <StackPanel Grid.Column="2" Spacing="3">
                                         <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />

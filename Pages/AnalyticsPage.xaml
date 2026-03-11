@@ -28,35 +28,35 @@
                 <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x7D2F;&#x8BA1;&#x5165;&#x5E93;&#x91D1;&#x989D;" />
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.TotalInboundAmountText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.TotalInboundAmountText, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
                 <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x7D2F;&#x8BA1;&#x51FA;&#x5E93;&#x91D1;&#x989D;" />
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.TotalOutboundAmountText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.TotalOutboundAmountText, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
                 <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4F30;&#x7B97;&#x6BDB;&#x5229;" />
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.EstimatedMarginText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.EstimatedMarginText, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
                 <Border Grid.Column="3" Style="{StaticResource CardSurfaceStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x6D3B;&#x8DC3;&#x5BA2;&#x6237;&#x6570;" />
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.ActiveCustomerCountText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.ActiveCustomerCountText, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
                 <Border Grid.Column="4" Style="{StaticResource CardSurfaceStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x603B;&#x8BA2;&#x5355;&#x6570;" />
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.TotalOrderCountText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.TotalOrderCountText, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
             </Grid>

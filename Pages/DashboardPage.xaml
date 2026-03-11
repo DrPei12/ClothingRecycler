@@ -25,28 +25,28 @@
                 <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4ECA;&#x65E5;&#x5165;&#x5E93;&#x91D1;&#x989D;" />
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{x:Bind ViewModel.TodayInboundAmount, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TodayInboundAmount, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
                 <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4ECA;&#x65E5;&#x51FA;&#x5E93;&#x91D1;&#x989D;" />
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{x:Bind ViewModel.TodayOutboundAmount, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TodayOutboundAmount, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
                 <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;&#x6210;&#x672C;" />
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{x:Bind ViewModel.TotalInventoryCost, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TotalInventoryCost, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
                 <Border Grid.Column="3" Style="{StaticResource CardSurfaceStyle}">
                     <StackPanel Spacing="8">
                         <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5F53;&#x524D;&#x9884;&#x8BA1;&#x6536;&#x5165;" />
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.ForecastRevenue, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.ForecastRevenue, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
             </Grid>
@@ -78,13 +78,12 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="{x:Bind Name}" />
+                                            <TextBlock Style="{StaticResource CompactListTitleTextStyle}" Text="{x:Bind Name}" />
                                             <TextBlock Opacity="0.72" Text="{x:Bind DisplayStockText}" />
                                         </StackPanel>
                                         <TextBlock
                                             Grid.Column="1"
-                                            FontSize="15"
-                                            FontWeight="SemiBold"
+                                            Style="{StaticResource CompactListTitleTextStyle}"
                                             Foreground="{StaticResource BrandBrush}"
                                             Text="{x:Bind ForecastRevenueText}"
                                             VerticalAlignment="Center" />
@@ -99,14 +98,14 @@
                     <Border Style="{StaticResource CardSurfaceStyle}">
                         <StackPanel Spacing="8">
                             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x5206;&#x7C7B;&#x603B;&#x6570;" />
-                            <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.CategoryCount, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCount, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
 
                     <Border Style="{StaticResource CardSurfaceStyle}">
                         <StackPanel Spacing="8">
                             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x4F4E;&#x5E93;&#x5B58;&#x5206;&#x7C7B;" />
-                            <TextBlock FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource DangerBrush}" Text="{x:Bind ViewModel.LowStockCount, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource MetricValueTextStyle}" Foreground="{StaticResource DangerBrush}" Text="{x:Bind ViewModel.LowStockCount, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
                 </StackPanel>

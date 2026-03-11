@@ -13,7 +13,7 @@
             Style="{StaticResource CardSurfaceStyle}"
             Width="560">
             <StackPanel Spacing="12">
-                <TextBlock FontSize="28" FontWeight="SemiBold" Text="{x:Bind TitleText, Mode=OneWay}" />
+            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="{x:Bind TitleText, Mode=OneWay}" />
                 <TextBlock Opacity="0.72" Text="{x:Bind DescriptionText, Mode=OneWay}" TextWrapping="WrapWholeWords" />
             </StackPanel>
         </Border>
