@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentDialog
+    x:Class="ClothingRecycler.Desktop.Controls.OrderEditorDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    CloseButtonText="&#x53D6;&#x6D88;"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnPrimaryButtonClick"
+    PrimaryButtonText="&#x4FDD;&#x5B58;&#x4FEE;&#x6539;">
+    <ScrollViewer MaxHeight="620">
+        <StackPanel Spacing="12">
+            <InfoBar
+                x:Name="ValidationInfoBar"
+                IsClosable="False"
+                IsOpen="False"
+                Severity="Error" />
+
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Opacity="0.72" Text="&#x8BA2;&#x5355;&#x53F7;" />
+                    <TextBlock x:Name="OrderNumberTextBlock" FontWeight="SemiBold" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Opacity="0.72" Text="&#x8BA2;&#x5355;&#x7C7B;&#x578B;" />
+                    <TextBlock x:Name="OrderTypeTextBlock" FontWeight="SemiBold" />
+                </StackPanel>
+            </Grid>
+
+            <ComboBox
+                x:Name="CategoryComboBox"
+                DisplayMemberPath="Name"
+                Header="&#x8863;&#x7269;&#x5206;&#x7C7B;"
+                SelectionChanged="OnSelectionChanged" />
+
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Opacity="0.72" Text="&#x53EF;&#x7528;&#x5E93;&#x5B58;" />
+                    <TextBlock x:Name="CurrentStockTextBlock" FontWeight="SemiBold" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Opacity="0.72" Text="&#x8BA1;&#x91CF;&#x5355;&#x4F4D;" />
+                    <TextBlock x:Name="UnitTextBlock" FontWeight="SemiBold" />
+                </StackPanel>
+            </Grid>
+
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox
+                    x:Name="CustomerComboBox"
+                    Grid.Column="0"
+                    DisplayMemberPath="DisplayName"
+                    Header="&#x5DF2;&#x6709;&#x5BA2;&#x6237;&#xFF08;&#x53EF;&#x9009;&#xFF09;"
+                    SelectionChanged="OnSelectionChanged" />
+
+                <TextBox
+                    x:Name="NewCustomerNameTextBox"
+                    Grid.Column="1"
+                    Header="&#x65B0;&#x5BA2;&#x6237;&#x540D;&#x79F0;&#xFF08;&#x53EF;&#x9009;&#xFF09;"
+                    PlaceholderText="&#x586B;&#x5199;&#x540E;&#x4F1A;&#x4F18;&#x5148;&#x4F7F;&#x7528;&#x8BE5;&#x540D;&#x79F0;"
+                    TextChanged="OnCustomerNameTextChanged" />
+            </Grid>
+
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <NumberBox
+                    x:Name="QuantityBox"
+                    Grid.Column="0"
+                    Header="&#x6570;&#x91CF;"
+                    SmallChange="1"
+                    ValueChanged="OnNumberValueChanged" />
+
+                <NumberBox
+                    x:Name="UnitPriceBox"
+                    Grid.Column="1"
+                    Header="&#x5355;&#x4EF7;"
+                    Minimum="0.01"
+                    SmallChange="1"
+                    ValueChanged="OnNumberValueChanged" />
+            </Grid>
+
+            <Border Background="{ThemeResource AccentFillColorSecondaryBrush}" CornerRadius="12" Padding="12">
+                <StackPanel Spacing="6">
+                    <TextBlock Opacity="0.72" Text="&#x7EA0;&#x9519;&#x540E;&#x6458;&#x8981;" />
+                    <TextBlock x:Name="TotalAmountTextBlock" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock x:Name="CustomerTextBlock" Opacity="0.72" TextWrapping="WrapWholeWords" />
+                    <TextBlock x:Name="ValidationTextBlock" Opacity="0.72" TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

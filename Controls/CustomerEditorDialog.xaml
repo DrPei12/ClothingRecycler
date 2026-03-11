@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentDialog
+    x:Class="ClothingRecycler.Desktop.Controls.CustomerEditorDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    CloseButtonText="&#x53D6;&#x6D88;"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnPrimaryButtonClick"
+    PrimaryButtonText="&#x4FDD;&#x5B58;">
+    <ScrollViewer MaxHeight="560">
+        <StackPanel Spacing="12">
+            <InfoBar
+                x:Name="ValidationInfoBar"
+                IsClosable="False"
+                IsOpen="False"
+                Severity="Error" />
+
+            <TextBox
+                x:Name="NameTextBox"
+                Header="&#x5BA2;&#x6237;&#x540D;&#x79F0;"
+                PlaceholderText="&#x4F8B;&#x5982;&#xFF1A;&#x4E1C;&#x57CE;&#x56DE;&#x6536;&#x70B9;" />
+
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox
+                    x:Name="PhoneTextBox"
+                    Grid.Column="0"
+                    Header="&#x7535;&#x8BDD;"
+                    PlaceholderText="&#x53EF;&#x9009;" />
+                <TextBox
+                    x:Name="EmailTextBox"
+                    Grid.Column="1"
+                    Header="&#x90AE;&#x7BB1;"
+                    PlaceholderText="&#x53EF;&#x9009;" />
+            </Grid>
+
+            <TextBox
+                x:Name="AddressTextBox"
+                Header="&#x5730;&#x5740;"
+                PlaceholderText="&#x53EF;&#x9009;" />
+
+            <TextBox
+                x:Name="NoteTextBox"
+                AcceptsReturn="True"
+                Header="&#x5907;&#x6CE8;"
+                MinHeight="120"
+                PlaceholderText="&#x8BB0;&#x5F55;&#x8FD9;&#x4E2A;&#x5BA2;&#x6237;&#x7684;&#x9650;&#x4EF7;&#x3001;&#x7ED3;&#x7B97;&#x65B9;&#x5F0F;&#x6216;&#x5176;&#x4ED6;&#x8BF4;&#x660E;" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

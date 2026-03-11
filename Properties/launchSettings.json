@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ClothingRecycler.Desktop (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ClothingRecycler.Desktop (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

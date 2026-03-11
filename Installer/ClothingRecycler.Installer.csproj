@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ClothingRecycler.Installer</RootNamespace>
+    <AssemblyName>ClothingRecycler.Installer</AssemblyName>
+    <ApplicationIcon>..\Assets\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="payload.zip" Condition="Exists('payload.zip')">
+      <LogicalName>ClothingRecycler.Installer.payload.zip</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

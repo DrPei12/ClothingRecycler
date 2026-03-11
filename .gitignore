@@ -1,0 +1,24 @@
+# Windows / IDE
+.vs/
+.idea/
+*.user
+*.suo
+Thumbs.db
+Desktop.ini
+
+# Build outputs
+bin/
+obj/
+artifacts/
+tmp/
+build_stock_debug.log
+Installer/payload.zip
+ClothingRecycler.Desktop.Tests/bin/
+ClothingRecycler.Desktop.Tests/obj/
+Installer/bin/
+Installer/obj/
+
+# Generated docs
+output/*
+!output/pdf/
+!output/pdf/*.pdf

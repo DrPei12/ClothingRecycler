@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentDialog
+    x:Class="ClothingRecycler.Desktop.Controls.ImportPreviewDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:ClothingRecycler.Desktop.Models"
+    mc:Ignorable="d"
+    CloseButtonText="取消"
+    DefaultButton="Primary">
+    <ScrollViewer MaxHeight="680">
+        <StackPanel Spacing="16">
+            <InfoBar
+                IsClosable="False"
+                IsOpen="True"
+                Message="{x:Bind Preview.SummaryMessage, Mode=OneWay}"
+                Severity="{x:Bind Preview.SummarySeverity, Mode=OneWay}" />
+
+            <Border Style="{StaticResource CardSurfaceStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="导入概览" />
+                    <TextBlock Opacity="0.72" Text="{x:Bind Preview.SourceFileName, Mode=OneWay}" TextWrapping="WrapWholeWords" />
+
+                    <Grid ColumnSpacing="12" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
+                            <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="识别行数" />
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Preview.TotalRowCount, Mode=OneWay}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="3">
+                            <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="可导入" />
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Preview.ReadyToImportCount, Mode=OneWay}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Spacing="3">
+                            <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="新增 / 更新" />
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind SummaryActionText, Mode=OneWay}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="3">
+                            <TextBlock Style="{StaticResource TableHeaderTextStyle}" Text="问题数" />
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Preview.IssueCount, Mode=OneWay}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardSurfaceStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="将写入的记录" />
+
+                    <ListView
+                        ItemsSource="{x:Bind Preview.Rows, Mode=OneWay}"
+                        MaxHeight="240"
+                        SelectionMode="None"
+                        Visibility="{x:Bind Preview.RowsVisibility, Mode=OneWay}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ImportPreviewRowModel">
+                                <Grid ColumnSpacing="12" Padding="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Opacity="0.72" Text="{x:Bind LineText}" VerticalAlignment="Center" />
+                                    <Border Grid.Column="1" Background="{ThemeResource AccentFillColorSecondaryBrush}" CornerRadius="999" Padding="10,4">
+                                        <TextBlock FontSize="12" Text="{x:Bind ActionText}" />
+                                    </Border>
+                                    <StackPanel Grid.Column="2" Spacing="3">
+                                        <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
+                                        <TextBlock Opacity="0.72" Text="{x:Bind DetailText}" TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Opacity="0.72"
+                        Text="当前没有可写入的有效记录。"
+                        Visibility="{x:Bind Preview.EmptyRowsVisibility, Mode=OneWay}" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardSurfaceStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="问题明细" />
+
+                    <ListView
+                        ItemsSource="{x:Bind Preview.Issues, Mode=OneWay}"
+                        MaxHeight="240"
+                        SelectionMode="None"
+                        Visibility="{x:Bind Preview.IssuesVisibility, Mode=OneWay}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ImportPreviewIssueModel">
+                                <Grid ColumnSpacing="12" Padding="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Foreground="{StaticResource DangerBrush}" Text="{x:Bind LineText}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Message}" TextWrapping="WrapWholeWords" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Opacity="0.72"
+                        Text="没有发现结构或字段问题。"
+                        Visibility="{x:Bind Preview.EmptyIssuesVisibility, Mode=OneWay}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

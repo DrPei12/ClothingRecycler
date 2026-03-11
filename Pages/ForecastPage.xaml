@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Page
+    x:Class="ClothingRecycler.Desktop.Pages.ForecastPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:ClothingRecycler.Desktop.Models"
+    mc:Ignorable="d">
+    <ScrollViewer>
+        <StackPanel Padding="24" Spacing="16">
+            <CommandBar>
+                <AppBarButton Click="OnRefreshClick" Icon="Refresh" Label="&#x5237;&#x65B0;" />
+            </CommandBar>
+
+            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;" />
+            <TextBlock
+                Style="{StaticResource MutedTextStyle}"
+                Text="&#x57FA;&#x4E8E;&#x5F53;&#x524D;&#x5E93;&#x5B58;&#x3001;&#x6536;&#x8D2D;&#x4EF7;&#x548C;&#x552E;&#x4EF7;&#xFF0C;&#x67E5;&#x770B;&#x5404;&#x5206;&#x7C7B;&#x7684;&#x9884;&#x8BA1;&#x6536;&#x5165;&#x3001;&#x8865;&#x8D27;&#x63D0;&#x9192;&#x548C;&#x5355;&#x4EF7;&#x7A7A;&#x95F4;&#x3002;" />
+
+            <Grid ColumnSpacing="16" RowSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x603B;&#x9884;&#x8BA1;&#x6536;&#x5165;" />
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.TotalForecastRevenueText, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5E93;&#x5B58;&#x6210;&#x672C;" />
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.TotalInventoryCostText, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4F30;&#x7B97;&#x6BDB;&#x5229;" />
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.EstimatedGrossMarginText, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="3" Style="{StaticResource CardSurfaceStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5206;&#x7C7B;&#x603B;&#x6570;" />
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="4" Style="{StaticResource CardSurfaceStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5F85;&#x8865;&#x8D27;&#x5206;&#x7C7B;" />
+                        <TextBlock FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource DangerBrush}" Text="{x:Bind ViewModel.LowStockCountText, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="7*" />
+                    <ColumnDefinition Width="4*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;&#x6392;&#x884C;" />
+
+                        <Grid ColumnSpacing="12" Padding="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Style="{StaticResource TableHeaderTextStyle}" Text="&#x5206;&#x7C7B;" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource TableHeaderTextStyle}" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource TableHeaderTextStyle}" Text="&#x552E;&#x4EF7;" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource TableHeaderTextStyle}" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;" />
+                        </Grid>
+
+                        <ListView
+                            ItemsSource="{x:Bind ViewModel.TopForecastCategories, Mode=OneWay}"
+                            SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:CategoryModel">
+                                    <Grid ColumnSpacing="12" Padding="0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0" FontWeight="SemiBold" Text="{x:Bind Name}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind DisplayStockText}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind SellPriceText}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="3" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ForecastRevenueText}" VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Opacity="0.72"
+                            Text="&#x8FD8;&#x6CA1;&#x6709;&#x53EF;&#x7528;&#x7684;&#x5206;&#x7C7B;&#x548C;&#x5E93;&#x5B58;&#x6570;&#x636E;&#x3002;"
+                            Visibility="{x:Bind ViewModel.ForecastRankingEmptyVisibility, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <Grid Grid.Column="1" RowSpacing="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource CardSurfaceStyle}">
+                        <StackPanel Spacing="12">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x8865;&#x8D27;&#x63D0;&#x9192;" />
+
+                            <ListView
+                                ItemsSource="{x:Bind ViewModel.LowStockCategories, Mode=OneWay}"
+                                SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:CategoryModel">
+                                        <Grid ColumnSpacing="12" Padding="0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" FontWeight="SemiBold" Text="{x:Bind Name}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{x:Bind DisplayStockText}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Foreground="{StaticResource DangerBrush}" Text="{x:Bind ForecastRevenueText}" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                Opacity="0.72"
+                                Text="&#x5F53;&#x524D;&#x6CA1;&#x6709;&#x89E6;&#x53D1;&#x4F4E;&#x5E93;&#x5B58;&#x7684;&#x5206;&#x7C7B;&#x3002;"
+                                Visibility="{x:Bind ViewModel.LowStockEmptyVisibility, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource CardSurfaceStyle}">
+                        <StackPanel Spacing="12">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x5355;&#x4EF7;&#x7A7A;&#x95F4;" />
+
+                            <ListView
+                                ItemsSource="{x:Bind ViewModel.TopSpreadCategories, Mode=OneWay}"
+                                SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:CategoryModel">
+                                        <Grid ColumnSpacing="12" Padding="0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" FontWeight="SemiBold" Text="{x:Bind Name}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{x:Bind BuyPriceText}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Foreground="{StaticResource BrandBrush}" Text="{x:Bind SellPriceText}" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                Opacity="0.72"
+                                Text="&#x6682;&#x65E0;&#x53EF;&#x7528;&#x7684;&#x5355;&#x4EF7;&#x6570;&#x636E;&#x3002;"
+                                Visibility="{x:Bind ViewModel.PriceSpreadEmptyVisibility, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
