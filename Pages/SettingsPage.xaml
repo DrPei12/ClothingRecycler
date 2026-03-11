@@ -141,7 +141,7 @@
                             <CommandBar DefaultLabelPosition="Right">
                                 <AppBarButton Click="OnBackupDatabaseClick" Icon="SaveLocal" Label="&#x521B;&#x5EFA;&#x5907;&#x4EFD;" />
                                 <AppBarButton Click="OnRestoreDatabaseClick" Icon="OpenFile" Label="&#x4ECE;&#x5907;&#x4EFD;&#x6062;&#x590D;" />
-                                <AppBarButton Click="OnOpenBackupDirectoryClick" Icon="FolderOpen" Label="&#x6253;&#x5F00;&#x5907;&#x4EFD;&#x76EE;&#x5F55;" />
+                                <AppBarButton Click="OnOpenBackupDirectoryClick" Icon="Folder" Label="&#x6253;&#x5F00;&#x5907;&#x4EFD;&#x76EE;&#x5F55;" />
                             </CommandBar>
                             <TextBlock Opacity="0.72" Text="&#x6570;&#x636E;&#x5E93;&#x8DEF;&#x5F84;" />
                             <TextBox IsReadOnly="True" Text="{x:Bind ViewModel.DatabasePath, Mode=OneWay}" TextWrapping="Wrap" />
@@ -155,7 +155,7 @@
                             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x8BCA;&#x65AD;&#x4E0E;&#x8FC1;&#x79FB;" />
                             <CommandBar DefaultLabelPosition="Right">
                                 <AppBarButton Click="OnRunConsistencyCheckClick" Icon="Find" Label="&#x8FD0;&#x884C;&#x4E00;&#x81F4;&#x6027;&#x68C0;&#x67E5;" />
-                                <AppBarButton Click="OnOpenLogDirectoryClick" Icon="FolderOpen" Label="&#x6253;&#x5F00;&#x65E5;&#x5FD7;&#x76EE;&#x5F55;" />
+                                <AppBarButton Click="OnOpenLogDirectoryClick" Icon="Folder" Label="&#x6253;&#x5F00;&#x65E5;&#x5FD7;&#x76EE;&#x5F55;" />
                             </CommandBar>
                             <TextBlock Opacity="0.72" Text="&#x5E94;&#x7528;&#x7248;&#x672C;" />
                             <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind ViewModel.AppVersionText, Mode=OneWay}" />
@@ -177,7 +177,7 @@
                             <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x7ECF;&#x8425;&#x6570;&#x636E;&#x5BFC;&#x51FA;" />
                             <CommandBar DefaultLabelPosition="Right">
                                 <AppBarButton Click="OnExportBusinessDataClick" Icon="Save" Label="&#x5BFC;&#x51FA; CSV" />
-                                <AppBarButton Click="OnOpenExportDirectoryClick" Icon="FolderOpen" Label="&#x6253;&#x5F00;&#x5BFC;&#x51FA;&#x76EE;&#x5F55;" />
+                                <AppBarButton Click="OnOpenExportDirectoryClick" Icon="Folder" Label="&#x6253;&#x5F00;&#x5BFC;&#x51FA;&#x76EE;&#x5F55;" />
                             </CommandBar>
                             <TextBlock Opacity="0.72" Text="&#x5BFC;&#x51FA;&#x76EE;&#x5F55;" />
                             <TextBox IsReadOnly="True" Text="{x:Bind ViewModel.ExportDirectory, Mode=OneWay}" TextWrapping="Wrap" />
