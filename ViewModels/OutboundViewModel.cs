@@ -2,14 +2,15 @@ namespace ClothingRecycler.Desktop.ViewModels
 {
     public sealed class OutboundViewModel : ViewModelBase
     {
+        private readonly record struct OutboundDraftState(
+            long? SelectedCustomerId,
+            string NewCustomerName,
+            double Quantity,
+            double UnitPrice);
+
         private readonly LocalDatabaseService _databaseService;
         private readonly List<CustomerCategoryPriceModel> _priceMemories = [];
 
-        private CategoryModel? _selectedCategory;
-        private CustomerModel? _selectedCustomer;
-        private string _newCustomerName = string.Empty;
-        private double _quantity;
-        private double _unitPrice;
         private string _todayOutboundAmount = "\u00A50";
         private string _categoryCountText = "0";
         private string _recentRecordCountText = "0";
@@ -20,88 +21,11 @@ namespace ClothingRecycler.Desktop.ViewModels
             Title = "\u51FA\u5E93";
         }
 
-        public ObservableCollection<CategoryModel> Categories { get; } = [];
-
         public ObservableCollection<CustomerModel> Customers { get; } = [];
 
         public ObservableCollection<OutboundRecordModel> RecentRecords { get; } = [];
 
-        public CategoryModel? SelectedCategory
-        {
-            get => _selectedCategory;
-            set
-            {
-                if (!SetProperty(ref _selectedCategory, value))
-                {
-                    return;
-                }
-
-                ApplySuggestedUnitPrice();
-                RaiseComputedStateChanged();
-            }
-        }
-
-        public CustomerModel? SelectedCustomer
-        {
-            get => _selectedCustomer;
-            set
-            {
-                if (!SetProperty(ref _selectedCustomer, value))
-                {
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(NewCustomerName))
-                {
-                    ApplySuggestedUnitPrice();
-                }
-
-                RaiseComputedStateChanged();
-            }
-        }
-
-        public string NewCustomerName
-        {
-            get => _newCustomerName;
-            set
-            {
-                if (!SetProperty(ref _newCustomerName, value))
-                {
-                    return;
-                }
-
-                ApplySuggestedUnitPrice();
-                RaiseComputedStateChanged();
-            }
-        }
-
-        public double Quantity
-        {
-            get => _quantity;
-            set
-            {
-                if (!SetProperty(ref _quantity, value))
-                {
-                    return;
-                }
-
-                RaiseComputedStateChanged();
-            }
-        }
-
-        public double UnitPrice
-        {
-            get => _unitPrice;
-            set
-            {
-                if (!SetProperty(ref _unitPrice, value))
-                {
-                    return;
-                }
-
-                RaiseComputedStateChanged();
-            }
-        }
+        public ObservableCollection<OutboundCategoryDraftModel> CategoryEntries { get; } = [];
 
         public string TodayOutboundAmount
         {
@@ -121,83 +45,38 @@ namespace ClothingRecycler.Desktop.ViewModels
             private set => SetProperty(ref _recentRecordCountText, value);
         }
 
-        public string CurrentStockText => SelectedCategory?.DisplayStockText ?? "\u8BF7\u5148\u5728\u201C\u8BBE\u7F6E\u201D\u4E2D\u521B\u5EFA\u5206\u7C7B";
+        public Visibility EmptyStateVisibility => CategoryEntries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-        public string SelectedUnitText => SelectedCategory?.UnitLabel ?? "-";
-
-        public string EffectiveCustomerText => string.IsNullOrWhiteSpace(ResolvedCustomerName)
-            ? "\u533F\u540D\u51FA\u5E93"
-            : ResolvedCustomerName;
-
-        public string StockValidationText
-        {
-            get
-            {
-                if (SelectedCategory is null)
-                {
-                    return "\u8BF7\u5148\u9009\u62E9\u51FA\u5E93\u5206\u7C7B\u3002";
-                }
-
-                var normalizedQuantity = NormalizeQuantity();
-                if (normalizedQuantity <= 0)
-                {
-                    return "\u8BF7\u8F93\u5165\u8981\u51FA\u5E93\u7684\u6570\u91CF\u3002";
-                }
-
-                return HasEnoughStock
-                    ? $"\u5F53\u524D\u5E93\u5B58\u5145\u8DB3\uff0c\u53EF\u51FA\u5E93\u5E93\u5B58\u4E3A {SelectedCategory.DisplayStockText}\u3002"
-                    : $"\u5E93\u5B58\u4E0D\u8DB3\uff0c\u5F53\u524D\u4EC5\u5269 {SelectedCategory.DisplayStockText}\u3002";
-            }
-        }
-
-        public string TotalRevenueText => Currency(NormalizeQuantity() * UnitPrice);
-
-        public bool CanSubmit => SelectedCategory is not null && NormalizeQuantity() > 0 && UnitPrice > 0 && HasEnoughStock;
-
-        public Visibility EmptyStateVisibility => Categories.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
-        public Visibility FormVisibility => Categories.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility FormVisibility => CategoryEntries.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
         public Visibility RecentRecordsEmptyVisibility => RecentRecords.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-        private bool HasEnoughStock =>
-            SelectedCategory is not null && NormalizeQuantity() <= SelectedCategory.DisplayStock + 0.0001;
+        public Task LoadAsync() => LoadAsync(clearDraft: false);
 
-        private string ResolvedCustomerName
-        {
-            get
-            {
-                var trimmedNewName = NewCustomerName.Trim();
-                if (!string.IsNullOrWhiteSpace(trimmedNewName))
-                {
-                    return trimmedNewName;
-                }
-
-                return SelectedCustomer?.Name?.Trim() ?? string.Empty;
-            }
-        }
-
-        public async Task LoadAsync()
+        public async Task LoadAsync(bool clearDraft)
         {
             IsBusy = true;
 
             try
             {
-                var selectedCategoryId = SelectedCategory?.Id;
-                var selectedCustomerId = SelectedCustomer?.Id;
-                var preservedNewCustomerName = NewCustomerName;
+                var expandedCategoryId = clearDraft
+                    ? (long?)null
+                    : CategoryEntries.FirstOrDefault(entry => entry.IsExpanded)?.CategoryId;
+                var preservedDrafts = clearDraft
+                    ? new Dictionary<long, OutboundDraftState>()
+                    : CategoryEntries.ToDictionary(
+                        entry => entry.CategoryId,
+                        entry => new OutboundDraftState(
+                            entry.SelectedCustomer?.Id,
+                            entry.NewCustomerName,
+                            entry.Quantity,
+                            entry.UnitPrice));
 
                 var categories = await _databaseService.GetActiveCategoriesAsync();
-                var customers = await _databaseService.GetOutboundCustomersAsync();
+                var customers = await _databaseService.GetCustomersAsync();
                 var priceMemories = await _databaseService.GetCustomerCategoryPricesAsync();
                 var summary = await _databaseService.GetDashboardSummaryAsync();
                 var recentRecords = await _databaseService.GetRecentOutboundRecordsAsync(12);
-
-                Categories.Clear();
-                foreach (var category in categories)
-                {
-                    Categories.Add(category);
-                }
 
                 Customers.Clear();
                 foreach (var customer in customers)
@@ -214,22 +93,12 @@ namespace ClothingRecycler.Desktop.ViewModels
                 _priceMemories.Clear();
                 _priceMemories.AddRange(priceMemories.OrderByDescending(memory => memory.UpdatedAt));
 
-                SelectedCategory = categories.FirstOrDefault(category => category.Id == selectedCategoryId)
-                    ?? categories.FirstOrDefault();
-                SelectedCustomer = customers.FirstOrDefault(customer => customer.Id == selectedCustomerId);
-                NewCustomerName = preservedNewCustomerName;
-
-                if (SelectedCategory is null)
-                {
-                    Quantity = 0;
-                    UnitPrice = 0;
-                }
+                RebuildCategoryEntries(categories, customers, preservedDrafts, expandedCategoryId, clearDraft);
 
                 TodayOutboundAmount = Currency(summary.TodayOutboundAmount);
                 CategoryCountText = summary.CategoryCount.ToString(CultureInfo.InvariantCulture);
                 RecentRecordCountText = recentRecords.Count.ToString(CultureInfo.InvariantCulture);
 
-                RaiseComputedStateChanged();
                 OnPropertyChanged(nameof(EmptyStateVisibility));
                 OnPropertyChanged(nameof(FormVisibility));
                 OnPropertyChanged(nameof(RecentRecordsEmptyVisibility));
@@ -240,77 +109,133 @@ namespace ClothingRecycler.Desktop.ViewModels
             }
         }
 
-        public async Task SubmitAsync()
+        public void ToggleEntry(OutboundCategoryDraftModel entry)
         {
-            if (SelectedCategory is null)
+            var shouldExpand = !entry.IsExpanded;
+
+            foreach (var item in CategoryEntries)
             {
-                throw new InvalidOperationException("\u8BF7\u5148\u9009\u62E9\u51FA\u5E93\u5206\u7C7B\u3002");
+                item.IsExpanded = false;
             }
 
-            var normalizedQuantity = NormalizeQuantity();
+            entry.IsExpanded = shouldExpand;
+        }
+
+        public async Task<OutboundOrderConfirmationModel> SubmitAsync(OutboundCategoryDraftModel entry)
+        {
+            var normalizedQuantity = entry.NormalizedQuantity;
             if (normalizedQuantity <= 0)
             {
                 throw new InvalidOperationException("\u51FA\u5E93\u6570\u91CF\u5FC5\u987B\u5927\u4E8E 0\u3002");
             }
 
-            if (UnitPrice <= 0)
+            if (entry.UnitPrice <= 0)
             {
                 throw new InvalidOperationException("\u51FA\u5E93\u5355\u4EF7\u5FC5\u987B\u5927\u4E8E 0\u3002");
             }
 
-            if (!HasEnoughStock)
+            if (!entry.HasEnoughStock)
             {
-                throw new InvalidOperationException("\u51FA\u5E93\u5931\u8D25\uff0c\u5F53\u524D\u5E93\u5B58\u4E0D\u8DB3\u3002");
+                throw new InvalidOperationException("\u51FA\u5E93\u5931\u8D25\uFF0C\u5F53\u524D\u5E93\u5B58\u4E0D\u8DB3\u3002");
             }
 
-            var customerName = ResolvedCustomerName;
-            await _databaseService.AddOutboundRecordAsync(SelectedCategory.Id, normalizedQuantity, UnitPrice, customerName);
+            var customerName = entry.ResolvedCustomerName;
+            var confirmation = await _databaseService.AddOutboundRecordAsync(entry.CategoryId, normalizedQuantity, entry.UnitPrice, customerName);
 
-            Quantity = SelectedCategory.UnitType == WeightUnit.Piece ? 1 : 0;
-            NewCustomerName = string.Empty;
-            StatusMessage = "\u51FA\u5E93\u5DF2\u4FDD\u5B58\uff0C\u5E93\u5B58\u5DF2\u6263\u51CF\u3002";
+            StatusMessage = $"{entry.CategoryName} \u5DF2\u5B8C\u6210\u51FA\u5E93\uFF0C\u5E93\u5B58\u5DF2\u540C\u6B65\u6263\u51CF\u3002";
 
-            await LoadAsync();
+            await LoadAsync(clearDraft: true);
 
-            if (!string.IsNullOrWhiteSpace(customerName))
+            var reloadedEntry = CategoryEntries.FirstOrDefault(item => item.CategoryId == entry.CategoryId);
+            if (reloadedEntry is not null)
             {
-                SelectedCustomer = Customers.FirstOrDefault(customer =>
-                    string.Equals(customer.Name, customerName, StringComparison.OrdinalIgnoreCase));
+                reloadedEntry.IsExpanded = true;
+
+                if (!string.IsNullOrWhiteSpace(customerName))
+                {
+                    reloadedEntry.SelectedCustomer = Customers.FirstOrDefault(customer =>
+                        string.Equals(customer.Name, customerName, StringComparison.OrdinalIgnoreCase));
+
+                    if (reloadedEntry.SelectedCustomer is null)
+                    {
+                        reloadedEntry.NewCustomerName = customerName;
+                    }
+                }
+            }
+
+            return confirmation;
+        }
+
+        private void RebuildCategoryEntries(
+            IReadOnlyList<CategoryModel> categories,
+            IReadOnlyList<CustomerModel> customers,
+            IReadOnlyDictionary<long, OutboundDraftState> preservedDrafts,
+            long? expandedCategoryId,
+            bool clearDraft)
+        {
+            foreach (var entry in CategoryEntries)
+            {
+                entry.PropertyChanged -= OnEntryPropertyChanged;
+            }
+
+            CategoryEntries.Clear();
+
+            foreach (var category in categories)
+            {
+                var entry = new OutboundCategoryDraftModel(category, category.SellPrice);
+
+                if (!clearDraft && preservedDrafts.TryGetValue(category.Id, out var draft))
+                {
+                    entry.SelectedCustomer = customers.FirstOrDefault(customer => customer.Id == draft.SelectedCustomerId);
+                    entry.NewCustomerName = draft.NewCustomerName;
+
+                    var suggestedUnitPrice = GetRememberedPrice(entry) ?? category.SellPrice;
+                    entry.ApplySuggestedUnitPrice(suggestedUnitPrice);
+                    entry.Quantity = draft.Quantity;
+                    entry.UnitPrice = draft.UnitPrice > 0 ? draft.UnitPrice : suggestedUnitPrice;
+                    entry.IsExpanded = expandedCategoryId == category.Id;
+                }
+                else
+                {
+                    entry.ApplySuggestedUnitPrice(category.SellPrice);
+                }
+
+                entry.PropertyChanged += OnEntryPropertyChanged;
+                CategoryEntries.Add(entry);
             }
         }
 
-        private void ApplySuggestedUnitPrice()
+        private void OnEntryPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (SelectedCategory is null)
+            if (sender is not OutboundCategoryDraftModel entry)
             {
                 return;
             }
 
-            var rememberedPrice = GetRememberedPrice();
-            UnitPrice = rememberedPrice ?? SelectedCategory.SellPrice;
+            if (e.PropertyName is nameof(OutboundCategoryDraftModel.SelectedCustomer)
+                or nameof(OutboundCategoryDraftModel.NewCustomerName))
+            {
+                var rememberedPrice = GetRememberedPrice(entry) ?? entry.Category.SellPrice;
+                entry.ApplySuggestedUnitPrice(rememberedPrice);
+            }
         }
 
-        private double? GetRememberedPrice()
+        private double? GetRememberedPrice(OutboundCategoryDraftModel entry)
         {
-            if (SelectedCategory is null)
-            {
-                return null;
-            }
-
-            var customerId = ResolveCustomerId();
+            var customerId = ResolveCustomerId(entry);
             if (!customerId.HasValue)
             {
                 return null;
             }
 
             return _priceMemories
-                .FirstOrDefault(memory => memory.CustomerId == customerId.Value && memory.CategoryId == SelectedCategory.Id)
+                .FirstOrDefault(memory => memory.CustomerId == customerId.Value && memory.CategoryId == entry.CategoryId)
                 ?.Price;
         }
 
-        private long? ResolveCustomerId()
+        private long? ResolveCustomerId(OutboundCategoryDraftModel entry)
         {
-            var trimmedNewName = NewCustomerName.Trim();
+            var trimmedNewName = entry.NewCustomerName.Trim();
             if (!string.IsNullOrWhiteSpace(trimmedNewName))
             {
                 return Customers
@@ -318,26 +243,7 @@ namespace ClothingRecycler.Desktop.ViewModels
                     ?.Id;
             }
 
-            return SelectedCustomer?.Id;
-        }
-
-        private double NormalizeQuantity()
-        {
-            var quantity = Math.Max(0, Quantity);
-
-            return SelectedCategory?.UnitType == WeightUnit.Piece
-                ? Math.Round(quantity)
-                : Math.Round(quantity, 2);
-        }
-
-        private void RaiseComputedStateChanged()
-        {
-            OnPropertyChanged(nameof(CurrentStockText));
-            OnPropertyChanged(nameof(SelectedUnitText));
-            OnPropertyChanged(nameof(EffectiveCustomerText));
-            OnPropertyChanged(nameof(StockValidationText));
-            OnPropertyChanged(nameof(TotalRevenueText));
-            OnPropertyChanged(nameof(CanSubmit));
+            return entry.SelectedCustomer?.Id;
         }
 
         private static string Currency(double value) => $"\u00A5{value:0.##}";

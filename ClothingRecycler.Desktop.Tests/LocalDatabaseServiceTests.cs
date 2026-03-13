@@ -4,6 +4,7 @@ using ClothingRecycler.Desktop.Models;
 using ClothingRecycler.Desktop.Services;
 
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace ClothingRecycler.Desktop.Tests;
 
@@ -116,6 +117,52 @@ public sealed class LocalDatabaseServiceTests
         Assert.Equal(pantsId, bobMemories[0].CategoryId);
         Assert.Equal(20, bobMemories[0].Price, 3);
         Assert.Empty(aliceMemories);
+    }
+
+    [Fact]
+    public async Task AddInboundRecordAsync_UsesReadableOrderNameFormat()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("卫衣", WeightUnit.Kilogram, buyPrice: 5, sellPrice: 12);
+        var confirmation = await scope.Service.AddInboundOrderAsync(
+            "Alice",
+            new List<InboundOrderLineInputModel>
+            {
+                new()
+                {
+                    CategoryId = categoryId,
+                    Quantity = 3,
+                    UnitPrice = 5
+                }
+            });
+
+        Assert.Matches(new Regex(@"^入库_\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_Alice$"), confirmation.OrderNumber);
+    }
+
+    [Fact]
+    public async Task AddOutboundRecordAsync_UsesAnonymousCustomerFallbackInOrderName()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("裤子", WeightUnit.Kilogram, buyPrice: 4, sellPrice: 9);
+        await scope.Service.AddInboundOrderAsync(
+            null,
+            new List<InboundOrderLineInputModel>
+            {
+                new()
+                {
+                    CategoryId = categoryId,
+                    Quantity = 8,
+                    UnitPrice = 4
+                }
+            });
+
+        var confirmation = await scope.Service.AddOutboundRecordAsync(categoryId, quantity: 2, unitPrice: 9, customerName: null);
+
+        Assert.Matches(new Regex(@"^出库_\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_匿名客户$"), confirmation.OrderNumber);
     }
 
     [Fact]

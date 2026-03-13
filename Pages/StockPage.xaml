@@ -26,7 +26,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
@@ -38,22 +37,12 @@
 
             <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
                 <StackPanel Spacing="8">
-                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x603B;&#x9884;&#x8BA1;&#x6536;&#x5165;" />
-                    <TextBlock
-                        Style="{StaticResource MetricValueTextStyle}"
-                        Foreground="{StaticResource BrandBrush}"
-                        Text="{x:Bind ViewModel.ForecastRevenue, Mode=OneWay}" />
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
-                <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5206;&#x7C7B;&#x603B;&#x6570;" />
                     <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="3" Style="{StaticResource CardSurfaceStyle}">
+            <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4F4E;&#x5E93;&#x5B58;&#x5206;&#x7C7B;" />
                     <TextBlock
@@ -127,15 +116,11 @@
                                             <TextBlock Opacity="0.72" Text="{x:Bind LastActivityText}" />
                                         </StackPanel>
 
-                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="4">
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <TextBlock
                                                 FontWeight="SemiBold"
                                                 HorizontalAlignment="Right"
                                                 Text="{x:Bind DisplayStockText}" />
-                                            <TextBlock
-                                                Foreground="{StaticResource BrandBrush}"
-                                                HorizontalAlignment="Right"
-                                                Text="{x:Bind ForecastRevenueText}" />
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
@@ -217,21 +202,16 @@
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
-                                    <TextBlock Opacity="0.72" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;" />
-                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.SelectedCategoryForecastRevenueText, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Row="1" Grid.Column="2" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x5355;&#x4EF7;&#x4EF7;&#x5DEE;" />
                                     <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryPriceSpreadText, Mode=OneWay}" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
+                                <StackPanel Grid.Row="1" Grid.Column="2" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x6700;&#x540E;&#x6D41;&#x6C34;" />
                                     <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryLastActivityText, Mode=OneWay}" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
+                                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
                                     <TextBlock Opacity="0.72" Text="&#x6700;&#x540E;&#x76D8;&#x70B9;" />
                                     <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryLastAuditText, Mode=OneWay}" />
                                 </StackPanel>

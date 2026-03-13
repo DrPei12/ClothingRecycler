@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Window
+    x:Class="ClothingRecycler.Desktop.OrderWindows.InboundOrderConfirmationWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:ClothingRecycler.Desktop.Models"
+    mc:Ignorable="d">
+    <Grid
+        x:Name="RootLayout"
+        Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer
+            Grid.Row="0"
+            HorizontalScrollBarVisibility="Disabled"
+            HorizontalScrollMode="Disabled"
+            VerticalScrollBarVisibility="Auto"
+            VerticalScrollMode="Auto">
+            <Grid
+                x:Name="DocumentRoot"
+                MaxWidth="1440"
+                Margin="0"
+                Padding="36"
+                RowSpacing="20"
+                HorizontalAlignment="Stretch"
+                Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="入库确认单" />
+                    <TextBlock
+                        Opacity="0.72"
+                        Text="可直接拍照发给客户确认本次入库明细，也支持导出 PDF 和 PNG。"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Spacing="16">
+                    <Border Style="{StaticResource CardSurfaceStyle}">
+                        <Grid ColumnSpacing="24" RowSpacing="18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="6">
+                                <TextBlock Opacity="0.72" Text="订单名" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Confirmation.OrderNumber, Mode=OneWay}" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="6">
+                                <TextBlock Opacity="0.72" Text="交易时间" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Confirmation.TimestampText, Mode=OneWay}" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="6">
+                                <TextBlock Opacity="0.72" Text="交易客户" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Confirmation.CustomerDisplayName, Mode=OneWay}" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="6">
+                                <TextBlock Opacity="0.72" Text="入库类别" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{x:Bind Confirmation.CategoriesText, Mode=OneWay}" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnSpacing="20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Opacity="0.72" Text="类别数" />
+                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind Confirmation.CategoryCountText, Mode=OneWay}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Spacing="6">
+                                    <TextBlock Opacity="0.72" Text="数量汇总" />
+                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind Confirmation.QuantitySummaryText, Mode=OneWay}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Opacity="0.72" Text="本次总成本" />
+                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind Confirmation.TotalAmountText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardSurfaceStyle}">
+                        <StackPanel Spacing="16">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="明细列表" />
+
+                            <Grid ColumnSpacing="20" Padding="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3*" />
+                                    <ColumnDefinition Width="1.4*" />
+                                    <ColumnDefinition Width="1.4*" />
+                                    <ColumnDefinition Width="1.4*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Style="{StaticResource TableHeaderTextStyle}" Text="交易类别" />
+                                <TextBlock Grid.Column="1" HorizontalAlignment="Right" Style="{StaticResource TableHeaderTextStyle}" Text="交易量" />
+                                <TextBlock Grid.Column="2" HorizontalAlignment="Right" Style="{StaticResource TableHeaderTextStyle}" Text="交易单价" />
+                                <TextBlock Grid.Column="3" HorizontalAlignment="Right" Style="{StaticResource TableHeaderTextStyle}" Text="小计" />
+                            </Grid>
+
+                            <ItemsControl ItemsSource="{x:Bind Confirmation.Items, Mode=OneWay}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:OrderDetailItemModel">
+                                        <Border
+                                            Padding="0,14,0,0"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="0,1,0,0">
+                                            <Grid ColumnSpacing="20" Padding="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="3*" />
+                                                    <ColumnDefinition Width="1.4*" />
+                                                    <ColumnDefinition Width="1.4*" />
+                                                    <ColumnDefinition Width="1.4*" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Grid.Column="0" FontWeight="SemiBold" Text="{x:Bind CategoryName}" TextWrapping="Wrap" />
+                                                <TextBlock Grid.Column="1" HorizontalAlignment="Right" Text="{x:Bind QuantityText}" />
+                                                <TextBlock Grid.Column="2" HorizontalAlignment="Right" Text="{x:Bind UnitPriceText}" />
+                                                <TextBlock Grid.Column="3" HorizontalAlignment="Right" Text="{x:Bind LineAmountText}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <Border
+            Grid.Row="1"
+            Padding="24,16,24,24"
+            Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            <StackPanel
+                x:Name="FooterActionsPanel"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Spacing="12">
+                <Button
+                    x:Name="ExportPngButton"
+                    MinWidth="160"
+                    Click="OnExportPngClick"
+                    Content="导出 PNG" />
+                <Button
+                    x:Name="ExportPdfButton"
+                    MinWidth="160"
+                    Click="OnExportPdfClick"
+                    Content="导出 PDF" />
+                <Button
+                    MinWidth="180"
+                    Click="OnCloseClick"
+                    Content="完成"
+                    Style="{StaticResource AccentButtonStyle}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

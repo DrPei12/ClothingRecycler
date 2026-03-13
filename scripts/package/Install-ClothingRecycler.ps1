@@ -19,6 +19,7 @@ $startMenuShortcutPath = Join-Path $startMenuFolder "$appName.lnk"
 $uninstallShortcutPath = Join-Path $startMenuFolder "卸载$appName.lnk"
 $uninstallRegistryKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\ClothingRecycler"
 $exeName = "ClothingRecycler.Desktop.exe"
+$uninstallBatName = "Uninstall-ClothingRecycler.bat"
 $excludedNames = @(
     "Install-ClothingRecycler.ps1",
     "Install-ClothingRecycler.bat"
@@ -61,6 +62,17 @@ function Test-NestedPath {
     $normalizedPath = [System.IO.Path]::GetFullPath($Path).TrimEnd('\') + '\'
     $normalizedOtherPath = [System.IO.Path]::GetFullPath($OtherPath).TrimEnd('\') + '\'
     return $normalizedPath.StartsWith($normalizedOtherPath, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Test-LooksLikeExistingInstall {
+    param([string]$Path)
+
+    if (-not (Test-Path $Path -PathType Container)) {
+        return $false
+    }
+
+    return (Test-Path (Join-Path $Path $exeName) -PathType Leaf) -or
+        (Test-Path (Join-Path $Path $uninstallBatName) -PathType Leaf)
 }
 
 function New-AppShortcut {
@@ -124,7 +136,8 @@ function Resolve-InstallRoot {
 
     if ([string]::IsNullOrWhiteSpace($RequestedInstallRoot)) {
         $candidate = if ([string]::IsNullOrWhiteSpace($PreviousInstallRoot)) { $defaultInstallRoot } else { $PreviousInstallRoot }
-    } else {
+    }
+    else {
         $candidate = $RequestedInstallRoot
     }
 
@@ -159,7 +172,7 @@ function Resolve-InstallRoot {
     }
 
     $hasEntries = (Get-ChildItem -Path $candidate -Force -ErrorAction SilentlyContinue | Measure-Object).Count -gt 0
-    if ($hasEntries -and -not (Test-SamePath $candidate $PreviousInstallRoot)) {
+    if ($hasEntries -and -not (Test-SamePath $candidate $PreviousInstallRoot) -and -not (Test-LooksLikeExistingInstall $candidate)) {
         if ($QuietMode) {
             throw "静默安装要求目标目录为空，或等于当前已安装目录。"
         }
@@ -172,6 +185,39 @@ function Resolve-InstallRoot {
     return $candidate
 }
 
+function Prepare-InstallDirectory {
+    param(
+        [string]$InstallPath,
+        [bool]$ShouldRefreshExistingInstall
+    )
+
+    New-Item -ItemType Directory -Force -Path $InstallPath | Out-Null
+
+    if (-not $ShouldRefreshExistingInstall) {
+        return
+    }
+
+    try {
+        Get-ChildItem -Path $InstallPath -Force -ErrorAction Stop | ForEach-Object {
+            Remove-Item -Path $_.FullName -Recurse -Force -ErrorAction Stop
+        }
+    }
+    catch {
+        throw "无法清理旧版本程序文件，请关闭可能占用这些文件的程序后重试。"
+    }
+}
+
+function Copy-StagedPayload {
+    param(
+        [string]$SourcePath,
+        [string]$DestinationPath
+    )
+
+    Get-ChildItem -Path $SourcePath -Force | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination (Join-Path $DestinationPath $_.Name) -Recurse -Force
+    }
+}
+
 function Try-DeletePreviousInstall {
     param(
         [string]$PreviousInstallRoot,
@@ -179,23 +225,24 @@ function Try-DeletePreviousInstall {
     )
 
     if ([string]::IsNullOrWhiteSpace($PreviousInstallRoot) -or (Test-SamePath $PreviousInstallRoot $CurrentInstallRoot)) {
-        return
+        return $null
     }
 
     if (-not (Test-Path $PreviousInstallRoot -PathType Container)) {
-        return
+        return $null
     }
 
     $previousExe = Join-Path $PreviousInstallRoot $exeName
     if (-not (Test-Path $previousExe -PathType Leaf)) {
-        return
+        return $null
     }
 
     try {
         Remove-Item -Path $PreviousInstallRoot -Recurse -Force -ErrorAction Stop
+        return $null
     }
     catch {
-        # 旧目录清理失败不影响当前安装。
+        return "注意：新版本已经安装完成，但旧版本目录未能自动删除，请手动检查并清理：$PreviousInstallRoot"
     }
 }
 
@@ -213,36 +260,60 @@ if (-not $Quiet -and [string]::IsNullOrWhiteSpace($InstallRoot)) {
 
 $installRoot = Resolve-InstallRoot -RequestedInstallRoot $InstallRoot -PreviousInstallRoot $previousInstallRoot -QuietMode:$Quiet
 $exePath = Join-Path $installRoot $exeName
-$uninstallBatPath = Join-Path $installRoot "Uninstall-ClothingRecycler.bat"
+$uninstallBatPath = Join-Path $installRoot $uninstallBatName
+$cleanupWarning = $null
+$stageRoot = Join-Path $env:TEMP ("clothingrecycler-install-stage-" + [Guid]::NewGuid().ToString("N"))
 
 Get-Process "ClothingRecycler.Desktop" -ErrorAction SilentlyContinue | Stop-Process -Force
 
-New-Item -ItemType Directory -Force -Path $installRoot | Out-Null
-New-Item -ItemType Directory -Force -Path $startMenuFolder | Out-Null
+try {
+    New-Item -ItemType Directory -Force -Path $stageRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path $startMenuFolder | Out-Null
 
-Get-ChildItem -Path $sourceRoot -Force | Where-Object { $_.Name -notin $excludedNames } | ForEach-Object {
-    Copy-Item -Path $_.FullName -Destination (Join-Path $installRoot $_.Name) -Recurse -Force
+    Get-ChildItem -Path $sourceRoot -Force | Where-Object { $_.Name -notin $excludedNames } | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination (Join-Path $stageRoot $_.Name) -Recurse -Force
+    }
+
+    $shouldRefreshExistingInstall = (Test-SamePath $installRoot $previousInstallRoot) -or (Test-LooksLikeExistingInstall $installRoot)
+    Prepare-InstallDirectory -InstallPath $installRoot -ShouldRefreshExistingInstall:$shouldRefreshExistingInstall
+    Copy-StagedPayload -SourcePath $stageRoot -DestinationPath $installRoot
+
+    New-AppShortcut -ShortcutPath $desktopShortcutPath -TargetPath $exePath -WorkingDirectory $installRoot -IconPath $exePath
+    New-AppShortcut -ShortcutPath $startMenuShortcutPath -TargetPath $exePath -WorkingDirectory $installRoot -IconPath $exePath
+    New-AppShortcut -ShortcutPath $uninstallShortcutPath -TargetPath $uninstallBatPath -WorkingDirectory $installRoot -IconPath $exePath
+
+    New-Item -Path $uninstallRegistryKey -Force | Out-Null
+    Set-ItemProperty -Path $uninstallRegistryKey -Name "DisplayName" -Value $appName
+    Set-ItemProperty -Path $uninstallRegistryKey -Name "DisplayVersion" -Value $version
+    Set-ItemProperty -Path $uninstallRegistryKey -Name "Publisher" -Value $publisher
+    Set-ItemProperty -Path $uninstallRegistryKey -Name "InstallLocation" -Value $installRoot
+    Set-ItemProperty -Path $uninstallRegistryKey -Name "DisplayIcon" -Value $exePath
+    Set-ItemProperty -Path $uninstallRegistryKey -Name "UninstallString" -Value ('"{0}"' -f $uninstallBatPath)
+    Set-ItemProperty -Path $uninstallRegistryKey -Name "NoModify" -Value 1 -Type DWord
+    Set-ItemProperty -Path $uninstallRegistryKey -Name "NoRepair" -Value 1 -Type DWord
+
+    $cleanupWarning = Try-DeletePreviousInstall -PreviousInstallRoot $previousInstallRoot -CurrentInstallRoot $installRoot
 }
-
-New-AppShortcut -ShortcutPath $desktopShortcutPath -TargetPath $exePath -WorkingDirectory $installRoot -IconPath $exePath
-New-AppShortcut -ShortcutPath $startMenuShortcutPath -TargetPath $exePath -WorkingDirectory $installRoot -IconPath $exePath
-New-AppShortcut -ShortcutPath $uninstallShortcutPath -TargetPath $uninstallBatPath -WorkingDirectory $installRoot -IconPath $exePath
-
-New-Item -Path $uninstallRegistryKey -Force | Out-Null
-Set-ItemProperty -Path $uninstallRegistryKey -Name "DisplayName" -Value $appName
-Set-ItemProperty -Path $uninstallRegistryKey -Name "DisplayVersion" -Value $version
-Set-ItemProperty -Path $uninstallRegistryKey -Name "Publisher" -Value $publisher
-Set-ItemProperty -Path $uninstallRegistryKey -Name "InstallLocation" -Value $installRoot
-Set-ItemProperty -Path $uninstallRegistryKey -Name "DisplayIcon" -Value $exePath
-Set-ItemProperty -Path $uninstallRegistryKey -Name "UninstallString" -Value ('"{0}"' -f $uninstallBatPath)
-Set-ItemProperty -Path $uninstallRegistryKey -Name "NoModify" -Value 1 -Type DWord
-Set-ItemProperty -Path $uninstallRegistryKey -Name "NoRepair" -Value 1 -Type DWord
-
-Try-DeletePreviousInstall -PreviousInstallRoot $previousInstallRoot -CurrentInstallRoot $installRoot
+finally {
+    Remove-Item -Path $stageRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
 
 Write-Output "Installed to: $installRoot"
 Write-Output "Start Menu shortcut: $startMenuShortcutPath"
 Write-Output "Desktop shortcut: $desktopShortcutPath"
+
+if (-not [string]::IsNullOrWhiteSpace($cleanupWarning)) {
+    if ($Quiet) {
+        Write-Warning $cleanupWarning
+    }
+    else {
+        [System.Windows.Forms.MessageBox]::Show(
+            $cleanupWarning,
+            $appName,
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Warning) | Out-Null
+    }
+}
 
 if (-not $NoStart) {
     Start-Process -FilePath $exePath -WorkingDirectory $installRoot

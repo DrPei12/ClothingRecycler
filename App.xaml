@@ -17,17 +17,29 @@
                     <Color x:Key="BrandColor">#1976D2</Color>
                     <Color x:Key="PositiveColor">#2E7D32</Color>
                     <Color x:Key="DangerColor">#C62828</Color>
+                    <Color x:Key="SoftInfoPanelColor">#EEF6FF</Color>
+                    <Color x:Key="SoftInfoPanelBorderColor">#C7DDF4</Color>
+                    <Color x:Key="SoftWarmPanelColor">#FFF4E8</Color>
+                    <Color x:Key="SoftWarmPanelBorderColor">#E8D0B3</Color>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <Color x:Key="BrandColor">#8AB4F8</Color>
                     <Color x:Key="PositiveColor">#81C995</Color>
                     <Color x:Key="DangerColor">#F28B82</Color>
+                    <Color x:Key="SoftInfoPanelColor">#203647</Color>
+                    <Color x:Key="SoftInfoPanelBorderColor">#45627D</Color>
+                    <Color x:Key="SoftWarmPanelColor">#433224</Color>
+                    <Color x:Key="SoftWarmPanelBorderColor">#6D5641</Color>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
             <SolidColorBrush x:Key="BrandBrush" Color="{ThemeResource BrandColor}" />
             <SolidColorBrush x:Key="PositiveBrush" Color="{ThemeResource PositiveColor}" />
             <SolidColorBrush x:Key="DangerBrush" Color="{ThemeResource DangerColor}" />
+            <SolidColorBrush x:Key="SoftInfoPanelBrush" Color="{ThemeResource SoftInfoPanelColor}" />
+            <SolidColorBrush x:Key="SoftInfoPanelBorderBrush" Color="{ThemeResource SoftInfoPanelBorderColor}" />
+            <SolidColorBrush x:Key="SoftWarmPanelBrush" Color="{ThemeResource SoftWarmPanelColor}" />
+            <SolidColorBrush x:Key="SoftWarmPanelBorderBrush" Color="{ThemeResource SoftWarmPanelBorderColor}" />
 
             <x:Double x:Key="AppBodyFontSize">14</x:Double>
             <x:Double x:Key="AppTableHeaderFontSize">12</x:Double>
@@ -64,6 +76,22 @@
                 <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="CornerRadius" Value="16" />
                 <Setter Property="Padding" Value="20" />
+            </Style>
+
+            <Style x:Key="SoftInfoPanelStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource SoftInfoPanelBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource SoftInfoPanelBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="14" />
+                <Setter Property="Padding" Value="16" />
+            </Style>
+
+            <Style x:Key="SoftWarmPanelStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource SoftWarmPanelBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource SoftWarmPanelBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="14" />
+                <Setter Property="Padding" Value="16" />
             </Style>
 
             <Style x:Key="TableHeaderTextStyle" TargetType="TextBlock">

@@ -10,7 +10,7 @@
     <ScrollViewer>
         <StackPanel Padding="24" Spacing="16">
             <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="&#x5165;&#x5E93;&#x5DE5;&#x4F5C;&#x53F0;" />
-            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x73B0;&#x5728;&#x5DF2;&#x63A5;&#x5165;&#x5206;&#x7C7B;&#x9009;&#x62E9;&#x3001;&#x5BA2;&#x6237;&#x8BC6;&#x522B;&#x3001;&#x4EF7;&#x683C;&#x8BB0;&#x5FC6;&#x3001;&#x5E93;&#x5B58;&#x5165;&#x8D26;&#x548C;&#x5165;&#x5E93;&#x8BB0;&#x5F55;&#x3002;" />
+            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5148;&#x9009;&#x62E9;&#x5BA2;&#x6237;&#xFF0C;&#x518D;&#x4E00;&#x6B21;&#x6027;&#x586B;&#x5199;&#x591A;&#x4E2A;&#x5206;&#x7C7B;&#x7684;&#x5165;&#x5E93;&#x6570;&#x91CF;&#x548C;&#x5355;&#x4EF7;&#x3002;&#x63D0;&#x4EA4;&#x540E;&#x4F1A;&#x751F;&#x6210;&#x53EF;&#x4EE5;&#x62CD;&#x7167;&#x53D1;&#x7ED9;&#x5BA2;&#x6237;&#x786E;&#x8BA4;&#x7684;&#x5165;&#x5E93;&#x5355;&#x3002;" />
 
             <Grid ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
@@ -49,36 +49,16 @@
 
             <Grid ColumnSpacing="16" Visibility="{x:Bind ViewModel.FormVisibility, Mode=OneWay}">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
                     <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
                 <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="12">
-                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x65B0;&#x5EFA;&#x5165;&#x5E93;&#x8BB0;&#x5F55;" />
-
-                        <ComboBox
-                            Header="&#x8863;&#x7269;&#x5206;&#x7C7B;"
-                            DisplayMemberPath="Name"
-                            ItemsSource="{x:Bind ViewModel.Categories, Mode=OneWay}"
-                            SelectedItem="{x:Bind ViewModel.SelectedCategory, Mode=TwoWay}" />
-
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Opacity="0.72" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;" />
-                                <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.CurrentStockText, Mode=OneWay}" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1" Spacing="4">
-                                <TextBlock Opacity="0.72" Text="&#x8BA1;&#x91CF;&#x5355;&#x4F4D;" />
-                                <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedUnitText, Mode=OneWay}" />
-                            </StackPanel>
-                        </Grid>
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="6">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x672C;&#x6B21;&#x5BA2;&#x6237;&#x5165;&#x5E93;" />
+                            <TextBlock Opacity="0.72" Text="&#x8BF7;&#x5148;&#x9009;&#x62E9;&#x6216;&#x65B0;&#x5EFA;&#x5BA2;&#x6237;&#xFF0C;&#x7136;&#x540E;&#x9010;&#x9879;&#x586B;&#x5199;&#x672C;&#x6B21;&#x5165;&#x5E93;&#x7684;&#x7C7B;&#x522B;&#x660E;&#x7EC6;&#x3002;" TextWrapping="WrapWholeWords" />
+                        </StackPanel>
 
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
@@ -88,49 +68,99 @@
 
                             <ComboBox
                                 Grid.Column="0"
-                                Header="&#x5DF2;&#x6709;&#x5BA2;&#x6237;&#xFF08;&#x53EF;&#x9009;&#xFF09;"
+                                Header="&#x5DF2;&#x6709;&#x5BA2;&#x6237;"
                                 DisplayMemberPath="DisplayName"
                                 ItemsSource="{x:Bind ViewModel.Customers, Mode=OneWay}"
-                                PlaceholderText="&#x4E0D;&#x9009;&#x5219;&#x6309;&#x533F;&#x540D;&#x5165;&#x5E93;"
+                                PlaceholderText="&#x9009;&#x62E9;&#x672C;&#x6B21;&#x5165;&#x5E93;&#x5BA2;&#x6237;"
                                 SelectedItem="{x:Bind ViewModel.SelectedCustomer, Mode=TwoWay}" />
 
                             <TextBox
                                 Grid.Column="1"
-                                Header="&#x65B0;&#x5BA2;&#x6237;&#x540D;&#x79F0;&#xFF08;&#x53EF;&#x9009;&#xFF09;"
-                                PlaceholderText="&#x586B;&#x5199;&#x540E;&#x4F1A;&#x81EA;&#x52A8;&#x5EFA;&#x7ACB;&#x5BA2;&#x6237;"
+                                Header="&#x65B0;&#x5BA2;&#x6237;&#x540D;&#x79F0;"
+                                PlaceholderText="&#x586B;&#x5199;&#x540E;&#x4F1A;&#x4F18;&#x5148;&#x4F5C;&#x4E3A;&#x672C;&#x6B21;&#x4EA4;&#x6613;&#x5BA2;&#x6237;"
                                 Text="{x:Bind ViewModel.NewCustomerName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </Grid>
 
-                        <TextBlock Opacity="0.72" Text="&#x586B;&#x5199;&#x65B0;&#x5BA2;&#x6237;&#x540D;&#x79F0;&#x65F6;&#x4F1A;&#x4F18;&#x5148;&#x4F7F;&#x7528;&#x8BE5;&#x540D;&#x79F0;&#xFF1B;&#x5426;&#x5219;&#x4F7F;&#x7528;&#x5DF2;&#x9009;&#x5BA2;&#x6237;&#xFF1B;&#x90FD;&#x4E0D;&#x586B;&#x5219;&#x6309;&#x533F;&#x540D;&#x5165;&#x5E93;&#x3002;" TextWrapping="WrapWholeWords" />
-
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <NumberBox
-                                Grid.Column="0"
-                                Header="&#x5165;&#x5E93;&#x6570;&#x91CF;"
-                                SmallChange="1"
-                                Value="{x:Bind ViewModel.Quantity, Mode=TwoWay}" />
-
-                            <NumberBox
-                                Grid.Column="1"
-                                Header="&#x5165;&#x5E93;&#x5355;&#x4EF7;"
-                                Minimum="0.01"
-                                SmallChange="1"
-                                Value="{x:Bind ViewModel.UnitPrice, Mode=TwoWay}" />
-                        </Grid>
-
-                        <Border Background="{ThemeResource AccentFillColorSecondaryBrush}" CornerRadius="12" Padding="12">
+                        <Border Style="{StaticResource SoftInfoPanelStyle}" Padding="12">
                             <StackPanel Spacing="6">
-                                <TextBlock Opacity="0.72" Text="&#x672C;&#x6B21;&#x5165;&#x5E93;&#x603B;&#x6210;&#x672C;" />
-                                <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.TotalCostText, Mode=OneWay}" />
-                                <TextBlock Opacity="0.72" Text="&#x5F53;&#x524D;&#x5165;&#x5E93;&#x5BA2;&#x6237;&#xFF1A;" />
-                                <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.EffectiveCustomerText, Mode=OneWay}" />
+                                <TextBlock Opacity="0.72" Text="&#x5F53;&#x524D;&#x5165;&#x5E93;&#x5BA2;&#x6237;" />
+                                <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.EffectiveCustomerText, Mode=OneWay}" />
+                                <TextBlock Opacity="0.72" Text="&#x586B;&#x5199;&#x65B0;&#x5BA2;&#x6237;&#x540D;&#x79F0;&#x65F6;&#x4F1A;&#x4F18;&#x5148;&#x4F7F;&#x7528;&#x8BE5;&#x540D;&#x79F0;&#x3002;" TextWrapping="WrapWholeWords" />
                             </StackPanel>
                         </Border>
+
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Opacity="0.72"
+                            Text="&#x8BF7;&#x5148;&#x5728;&#x4E0A;&#x65B9;&#x9009;&#x62E9;&#x6216;&#x65B0;&#x5EFA;&#x5BA2;&#x6237;&#xFF0C;&#x7136;&#x540E;&#x4E0B;&#x65B9;&#x624D;&#x4F1A;&#x6309;&#x8BE5;&#x5BA2;&#x6237;&#x5F00;&#x59CB;&#x586B;&#x5199;&#x5404;&#x5206;&#x7C7B;&#x5165;&#x5E93;&#x660E;&#x7EC6;&#x3002;"
+                            TextWrapping="WrapWholeWords"
+                            Visibility="{x:Bind ViewModel.CustomerPromptVisibility, Mode=OneWay}" />
+
+                        <StackPanel Spacing="10" Visibility="{x:Bind ViewModel.EntryPanelVisibility, Mode=OneWay}">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2.4*" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Style="{StaticResource TableHeaderTextStyle}" Text="&#x5206;&#x7C7B;&#x4E0E;&#x5E93;&#x5B58;" />
+                                <TextBlock Grid.Column="1" Style="{StaticResource TableHeaderTextStyle}" Text="&#x5165;&#x5E93;&#x6570;&#x91CF;" />
+                                <TextBlock Grid.Column="2" Style="{StaticResource TableHeaderTextStyle}" Text="&#x5165;&#x5E93;&#x5355;&#x4EF7;" />
+                                <TextBlock Grid.Column="3" Style="{StaticResource TableHeaderTextStyle}" Text="&#x5C0F;&#x8BA1;" />
+                            </Grid>
+
+                            <ListView
+                                ItemsSource="{x:Bind ViewModel.CategoryEntries, Mode=OneWay}"
+                                MaxHeight="520"
+                                SelectionMode="None">
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        <Setter Property="Padding" Value="0" />
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:InboundOrderDraftLineModel">
+                                        <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1" Padding="0,12">
+                                            <Grid ColumnSpacing="12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="2.4*" />
+                                                    <ColumnDefinition Width="1*" />
+                                                    <ColumnDefinition Width="1*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0" Spacing="4">
+                                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind CategoryName}" />
+                                                    <TextBlock Opacity="0.72" Text="{x:Bind CurrentStockText}" />
+                                                    <TextBlock Opacity="0.72" Text="{x:Bind SuggestedPriceText, Mode=OneWay}" />
+                                                </StackPanel>
+
+                                                <NumberBox
+                                                    Grid.Column="1"
+                                                    HorizontalAlignment="Stretch"
+                                                    Header="{x:Bind UnitLabel, Mode=OneWay}"
+                                                    SmallChange="1"
+                                                    Value="{x:Bind Quantity, Mode=TwoWay}" />
+
+                                                <NumberBox
+                                                    Grid.Column="2"
+                                                    HorizontalAlignment="Stretch"
+                                                    Minimum="0"
+                                                    SmallChange="1"
+                                                    Value="{x:Bind UnitPrice, Mode=TwoWay}" />
+
+                                                <StackPanel Grid.Column="3" HorizontalAlignment="Right" Spacing="4" VerticalAlignment="Center">
+                                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind LineAmountText, Mode=OneWay}" />
+                                                    <TextBlock HorizontalAlignment="Right" Opacity="0.72" Text="{x:Bind QuantityText, Mode=OneWay}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Button Click="OnSubmitClick" Content="&#x786E;&#x8BA4;&#x5165;&#x5E93;" IsEnabled="{x:Bind ViewModel.CanSubmit, Mode=OneWay}" />
@@ -142,10 +172,24 @@
                 <StackPanel Grid.Column="1" Spacing="16">
                     <Border Style="{StaticResource CardSurfaceStyle}">
                         <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x5F53;&#x524D;&#x89C4;&#x5219;" />
-                            <TextBlock Opacity="0.72" Text="1. &#x9009;&#x62E9;&#x5BA2;&#x6237;&#x540E;&#x4F1A;&#x4F18;&#x5148;&#x5E26;&#x51FA;&#x8BE5;&#x5BA2;&#x6237;&#x4E0A;&#x6B21;&#x5BF9;&#x5E94;&#x7C7B;&#x522B;&#x7684;&#x5165;&#x5E93;&#x5355;&#x4EF7;&#x3002;" TextWrapping="WrapWholeWords" />
-                            <TextBlock Opacity="0.72" Text="2. &#x4FDD;&#x5B58;&#x540E;&#x4F1A;&#x7ACB;&#x5373;&#x5199;&#x5165;&#x5165;&#x5E93;&#x8BB0;&#x5F55;&#x3001;&#x521B;&#x5EFA;&#x5165;&#x5E93;&#x5355;&#x5E76;&#x540C;&#x6B65;&#x66F4;&#x65B0;&#x5E93;&#x5B58;&#x3002;" TextWrapping="WrapWholeWords" />
-                            <TextBlock Opacity="0.72" Text="3. &#x4E0D;&#x586B;&#x5BA2;&#x6237;&#x65F6;&#x6309;&#x533F;&#x540D;&#x5165;&#x5E93;&#x5904;&#x7406;&#xFF1B;&#x586B;&#x5199;&#x65B0;&#x540D;&#x79F0;&#x4F1A;&#x81EA;&#x52A8;&#x5EFA;&#x7ACB;&#x5BA2;&#x6237;&#x3002;" TextWrapping="WrapWholeWords" />
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x672C;&#x6B21;&#x5165;&#x5E93;&#x6458;&#x8981;" />
+                            <TextBlock Opacity="0.72" Text="&#x4EA4;&#x6613;&#x5BA2;&#x6237;" />
+                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.EffectiveCustomerText, Mode=OneWay}" />
+                            <TextBlock Opacity="0.72" Text="&#x5DF2;&#x586B;&#x5199;&#x5206;&#x7C7B;&#x6570;" />
+                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.FilledCategoryCountText, Mode=OneWay}" />
+                            <TextBlock Opacity="0.72" Text="&#x6570;&#x91CF;&#x6C47;&#x603B;" />
+                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.QuantitySummaryText, Mode=OneWay}" />
+                            <TextBlock Opacity="0.72" Text="&#x672C;&#x6B21;&#x5165;&#x5E93;&#x603B;&#x6210;&#x672C;" />
+                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.TotalCostText, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardSurfaceStyle}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x63D0;&#x4EA4;&#x540E;&#x7684;&#x6548;&#x679C;" />
+                            <TextBlock Opacity="0.72" Text="1. &#x672C;&#x6B21;&#x5165;&#x5E93;&#x4F1A;&#x751F;&#x6210;&#x4E00;&#x7B14;&#x201C;&#x591A;&#x7C7B;&#x522B;&#x5165;&#x5E93;&#x8BA2;&#x5355;&#x201D;&#x3002;" TextWrapping="WrapWholeWords" />
+                            <TextBlock Opacity="0.72" Text="2. &#x6240;&#x6709;&#x5DF2;&#x586B;&#x5199;&#x7684;&#x7C7B;&#x522B;&#x4F1A;&#x540C;&#x6B65;&#x5199;&#x5165;&#x5165;&#x5E93;&#x6D41;&#x6C34;&#x548C;&#x5E93;&#x5B58;&#x3002;" TextWrapping="WrapWholeWords" />
+                            <TextBlock Opacity="0.72" Text="3. &#x786E;&#x8BA4;&#x540E;&#x4F1A;&#x5F39;&#x51FA;&#x53EF;&#x4EE5;&#x62CD;&#x7167;&#x53D1;&#x7ED9;&#x5BA2;&#x6237;&#x7684;&#x5165;&#x5E93;&#x786E;&#x8BA4;&#x5355;&#x3002;" TextWrapping="WrapWholeWords" />
                         </StackPanel>
                     </Border>
                 </StackPanel>

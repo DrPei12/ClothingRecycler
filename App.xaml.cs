@@ -63,6 +63,7 @@ namespace ClothingRecycler.Desktop
             services.AddSingleton<AppLogger>();
             services.AddSingleton<AppUiSettingsService>();
             services.AddSingleton<LocalDatabaseService>();
+            services.AddSingleton<OrderExportService>();
             services.AddSingleton<MainWindow>();
 
             services.AddTransient<DashboardViewModel>();

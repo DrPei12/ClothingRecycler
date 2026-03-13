@@ -8,7 +8,6 @@ namespace ClothingRecycler.Desktop.ViewModels
         private string _searchText = string.Empty;
         private StockCategoryItemModel? _selectedCategory;
         private string _totalInventoryCost = "\u00A50";
-        private string _forecastRevenue = "\u00A50";
         private string _categoryCountText = "0";
         private string _lowStockCountText = "0";
         private string _selectedCategoryName = "\u8BF7\u9009\u62E9\u5206\u7C7B";
@@ -16,7 +15,6 @@ namespace ClothingRecycler.Desktop.ViewModels
         private string _selectedCategoryBuyPriceText = "\u00A50";
         private string _selectedCategorySellPriceText = "\u00A50";
         private string _selectedCategoryInventoryCostText = "\u00A50";
-        private string _selectedCategoryForecastRevenueText = "\u00A50";
         private string _selectedCategoryPriceSpreadText = "\u00A50";
         private string _selectedCategoryLastActivityText = "\u6682\u65E0\u6D41\u6C34";
         private string _selectedCategoryLastAuditText = "\u6682\u65E0\u76D8\u70B9";
@@ -93,12 +91,6 @@ namespace ClothingRecycler.Desktop.ViewModels
             private set => SetProperty(ref _totalInventoryCost, value);
         }
 
-        public string ForecastRevenue
-        {
-            get => _forecastRevenue;
-            private set => SetProperty(ref _forecastRevenue, value);
-        }
-
         public string CategoryCountText
         {
             get => _categoryCountText;
@@ -139,12 +131,6 @@ namespace ClothingRecycler.Desktop.ViewModels
         {
             get => _selectedCategoryInventoryCostText;
             private set => SetProperty(ref _selectedCategoryInventoryCostText, value);
-        }
-
-        public string SelectedCategoryForecastRevenueText
-        {
-            get => _selectedCategoryForecastRevenueText;
-            private set => SetProperty(ref _selectedCategoryForecastRevenueText, value);
         }
 
         public string SelectedCategoryPriceSpreadText
@@ -220,7 +206,6 @@ namespace ClothingRecycler.Desktop.ViewModels
                 RefreshLowStockTasks();
 
                 TotalInventoryCost = Currency(summary.TotalInventoryCost);
-                ForecastRevenue = Currency(summary.ForecastRevenue);
                 CategoryCountText = summary.CategoryCount.ToString(CultureInfo.InvariantCulture);
                 LowStockCountText = summary.LowStockCount.ToString(CultureInfo.InvariantCulture);
 
@@ -245,7 +230,6 @@ namespace ClothingRecycler.Desktop.ViewModels
                 SelectedCategoryBuyPriceText = Currency(0);
                 SelectedCategorySellPriceText = Currency(0);
                 SelectedCategoryInventoryCostText = Currency(0);
-                SelectedCategoryForecastRevenueText = Currency(0);
                 SelectedCategoryPriceSpreadText = Currency(0);
                 SelectedCategoryLastActivityText = "\u6682\u65E0\u6D41\u6C34";
                 SelectedCategoryLastAuditText = "\u6682\u65E0\u76D8\u70B9";
@@ -275,7 +259,6 @@ namespace ClothingRecycler.Desktop.ViewModels
             SelectedCategoryBuyPriceText = item.BuyPriceText;
             SelectedCategorySellPriceText = item.SellPriceText;
             SelectedCategoryInventoryCostText = item.InventoryCostText;
-            SelectedCategoryForecastRevenueText = item.ForecastRevenueText;
             SelectedCategoryPriceSpreadText = item.PriceSpreadText;
             SelectedCategoryLastActivityText = item.LastActivityText;
             SelectedCategoryLastAuditText = audits.FirstOrDefault()?.TimestampText ?? "\u6682\u65E0\u76D8\u70B9";

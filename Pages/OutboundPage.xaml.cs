@@ -21,11 +21,30 @@ namespace ClothingRecycler.Desktop.Pages
             await ViewModel.LoadAsync();
         }
 
-        private async void OnSubmitClick(object sender, RoutedEventArgs e)
+        private void OnCategoryEntryHeaderClick(object sender, RoutedEventArgs e)
         {
+            if (TryGetEntry(sender, out var entry))
+            {
+                ViewModel.ToggleEntry(entry);
+            }
+        }
+
+        private async void OnEntrySubmitClick(object sender, RoutedEventArgs e)
+        {
+            if (!TryGetEntry(sender, out var entry))
+            {
+                return;
+            }
+
             try
             {
-                await ViewModel.SubmitAsync();
+                var confirmation = await ViewModel.SubmitAsync(entry);
+                var window = new ClothingRecycler.Desktop.OrderWindows.OutboundOrderConfirmationWindow(confirmation);
+                ClothingRecycler.Desktop.Helpers.SecondaryWindowManager.Show(
+                    window,
+                    "\u51FA\u5E93\u786E\u8BA4\u5355",
+                    preferredWidth: 1520,
+                    preferredHeight: 1000);
             }
             catch (Exception ex)
             {
@@ -40,6 +59,19 @@ namespace ClothingRecycler.Desktop.Pages
 
                 await dialog.ShowAsync();
             }
+        }
+
+        private static bool TryGetEntry(object sender, out OutboundCategoryDraftModel entry)
+        {
+            entry = null!;
+
+            if (sender is not FrameworkElement element || element.DataContext is not OutboundCategoryDraftModel model)
+            {
+                return false;
+            }
+
+            entry = model;
+            return true;
         }
     }
 }

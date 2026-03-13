@@ -49,6 +49,7 @@
                         <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.ForecastRevenue, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
+
             </Grid>
 
             <InfoBar

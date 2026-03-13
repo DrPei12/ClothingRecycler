@@ -5,11 +5,8 @@ namespace ClothingRecycler.Desktop.ViewModels
         private readonly LocalDatabaseService _databaseService;
         private readonly List<CustomerCategoryPriceModel> _priceMemories = [];
 
-        private CategoryModel? _selectedCategory;
         private CustomerModel? _selectedCustomer;
         private string _newCustomerName = string.Empty;
-        private double _quantity;
-        private double _unitPrice;
         private string _todayInboundAmount = "\u00A50";
         private string _categoryCountText = "0";
         private string _recentRecordCountText = "0";
@@ -26,20 +23,7 @@ namespace ClothingRecycler.Desktop.ViewModels
 
         public ObservableCollection<InboundRecordModel> RecentRecords { get; } = [];
 
-        public CategoryModel? SelectedCategory
-        {
-            get => _selectedCategory;
-            set
-            {
-                if (!SetProperty(ref _selectedCategory, value))
-                {
-                    return;
-                }
-
-                ApplySuggestedUnitPrice();
-                RaiseComputedStateChanged();
-            }
-        }
+        public ObservableCollection<InboundOrderDraftLineModel> CategoryEntries { get; } = [];
 
         public CustomerModel? SelectedCustomer
         {
@@ -51,11 +35,7 @@ namespace ClothingRecycler.Desktop.ViewModels
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(NewCustomerName))
-                {
-                    ApplySuggestedUnitPrice();
-                }
-
+                ApplySuggestedUnitPrices();
                 RaiseComputedStateChanged();
             }
         }
@@ -70,35 +50,7 @@ namespace ClothingRecycler.Desktop.ViewModels
                     return;
                 }
 
-                ApplySuggestedUnitPrice();
-                RaiseComputedStateChanged();
-            }
-        }
-
-        public double Quantity
-        {
-            get => _quantity;
-            set
-            {
-                if (!SetProperty(ref _quantity, value))
-                {
-                    return;
-                }
-
-                RaiseComputedStateChanged();
-            }
-        }
-
-        public double UnitPrice
-        {
-            get => _unitPrice;
-            set
-            {
-                if (!SetProperty(ref _unitPrice, value))
-                {
-                    return;
-                }
-
+                ApplySuggestedUnitPrices();
                 RaiseComputedStateChanged();
             }
         }
@@ -121,23 +73,55 @@ namespace ClothingRecycler.Desktop.ViewModels
             private set => SetProperty(ref _recentRecordCountText, value);
         }
 
-        public string CurrentStockText => SelectedCategory?.DisplayStockText ?? "\u8BF7\u5148\u5728\u201C\u8BBE\u7F6E\u201D\u4E2D\u521B\u5EFA\u5206\u7C7B";
-
-        public string SelectedUnitText => SelectedCategory?.UnitLabel ?? "-";
-
         public string EffectiveCustomerText => string.IsNullOrWhiteSpace(ResolvedCustomerName)
-            ? "\u533F\u540D\u5165\u5E93"
+            ? "\u8BF7\u5148\u9009\u62E9\u6216\u65B0\u5EFA\u5BA2\u6237"
             : ResolvedCustomerName;
 
-        public string TotalCostText => Currency(NormalizeQuantity() * UnitPrice);
+        public string FilledCategoryCountText => FilledEntries.Count().ToString(CultureInfo.InvariantCulture);
 
-        public bool CanSubmit => SelectedCategory is not null && NormalizeQuantity() > 0 && UnitPrice > 0;
+        public string QuantitySummaryText
+        {
+            get
+            {
+                var filledEntries = FilledEntries.ToList();
+                if (filledEntries.Count == 0)
+                {
+                    return "0";
+                }
+
+                return string.Join(" / ",
+                    filledEntries
+                        .GroupBy(entry => entry.Category.UnitType)
+                        .Select(group =>
+                        {
+                            var quantity = group.Sum(entry => entry.NormalizedQuantity);
+                            var unitLabel = group.First().UnitLabel;
+                            return group.Key == WeightUnit.Piece
+                                ? $"{Math.Round(quantity):0} {unitLabel}"
+                                : $"{quantity:0.##} {unitLabel}";
+                        }));
+            }
+        }
+
+        public string TotalCostText => Currency(FilledEntries.Sum(entry => entry.LineAmount));
+
+        public bool HasCustomerSelection => !string.IsNullOrWhiteSpace(ResolvedCustomerName);
+
+        public bool CanSubmit => HasCustomerSelection && FilledEntries.Any() && FilledEntries.All(entry => entry.UnitPrice > 0);
 
         public Visibility EmptyStateVisibility => Categories.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        public Visibility CustomerPromptVisibility =>
+            Categories.Count > 0 && !HasCustomerSelection ? Visibility.Visible : Visibility.Collapsed;
+
+        public Visibility EntryPanelVisibility =>
+            Categories.Count > 0 && HasCustomerSelection ? Visibility.Visible : Visibility.Collapsed;
 
         public Visibility FormVisibility => Categories.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
         public Visibility RecentRecordsEmptyVisibility => RecentRecords.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        private IEnumerable<InboundOrderDraftLineModel> FilledEntries => CategoryEntries.Where(entry => entry.HasInput);
 
         private string ResolvedCustomerName
         {
@@ -153,18 +137,24 @@ namespace ClothingRecycler.Desktop.ViewModels
             }
         }
 
-        public async Task LoadAsync()
+        public Task LoadAsync() => LoadAsync(clearDraft: false);
+
+        public async Task LoadAsync(bool clearDraft)
         {
             IsBusy = true;
 
             try
             {
-                var selectedCategoryId = SelectedCategory?.Id;
                 var selectedCustomerId = SelectedCustomer?.Id;
                 var preservedNewCustomerName = NewCustomerName;
+                var preservedDraft = clearDraft
+                    ? new Dictionary<long, (double Quantity, double UnitPrice)>()
+                    : CategoryEntries.ToDictionary(
+                        entry => entry.CategoryId,
+                        entry => (entry.Quantity, entry.UnitPrice));
 
                 var categories = await _databaseService.GetActiveCategoriesAsync();
-                var customers = await _databaseService.GetInboundCustomersAsync();
+                var customers = await _databaseService.GetCustomersAsync();
                 var priceMemories = await _databaseService.GetCustomerCategoryPricesAsync();
                 var summary = await _databaseService.GetDashboardSummaryAsync();
                 var recentRecords = await _databaseService.GetRecentInboundRecordsAsync(12);
@@ -190,16 +180,10 @@ namespace ClothingRecycler.Desktop.ViewModels
                 _priceMemories.Clear();
                 _priceMemories.AddRange(priceMemories.OrderByDescending(memory => memory.UpdatedAt));
 
-                SelectedCategory = categories.FirstOrDefault(category => category.Id == selectedCategoryId)
-                    ?? categories.FirstOrDefault();
                 SelectedCustomer = customers.FirstOrDefault(customer => customer.Id == selectedCustomerId);
                 NewCustomerName = preservedNewCustomerName;
 
-                if (SelectedCategory is null)
-                {
-                    Quantity = 0;
-                    UnitPrice = 0;
-                }
+                RebuildCategoryEntries(categories, preservedDraft, clearDraft);
 
                 TodayInboundAmount = Currency(summary.TodayInboundAmount);
                 CategoryCountText = summary.CategoryCount.ToString(CultureInfo.InvariantCulture);
@@ -207,6 +191,8 @@ namespace ClothingRecycler.Desktop.ViewModels
 
                 RaiseComputedStateChanged();
                 OnPropertyChanged(nameof(EmptyStateVisibility));
+                OnPropertyChanged(nameof(CustomerPromptVisibility));
+                OnPropertyChanged(nameof(EntryPanelVisibility));
                 OnPropertyChanged(nameof(FormVisibility));
                 OnPropertyChanged(nameof(RecentRecordsEmptyVisibility));
             }
@@ -216,58 +202,85 @@ namespace ClothingRecycler.Desktop.ViewModels
             }
         }
 
-        public async Task SubmitAsync()
+        public async Task<InboundOrderConfirmationModel> SubmitAsync()
         {
-            if (SelectedCategory is null)
+            if (!HasCustomerSelection)
             {
-                throw new InvalidOperationException("\u8BF7\u5148\u9009\u62E9\u5165\u5E93\u5206\u7C7B\u3002");
+                throw new InvalidOperationException("\u8BF7\u5148\u9009\u62E9\u6216\u65B0\u5EFA\u5BA2\u6237\u3002");
             }
 
-            var normalizedQuantity = NormalizeQuantity();
-            if (normalizedQuantity <= 0)
+            var lines = FilledEntries
+                .Select(entry => new InboundOrderLineInputModel
+                {
+                    CategoryId = entry.CategoryId,
+                    Quantity = entry.NormalizedQuantity,
+                    UnitPrice = entry.UnitPrice
+                })
+                .ToList();
+
+            if (lines.Count == 0)
             {
-                throw new InvalidOperationException("\u5165\u5E93\u6570\u91CF\u5FC5\u987B\u5927\u4E8E 0\u3002");
+                throw new InvalidOperationException("\u8BF7\u81F3\u5C11\u586B\u5199\u4E00\u4E2A\u5206\u7C7B\u7684\u5165\u5E93\u6570\u91CF\u3002");
             }
 
-            if (UnitPrice <= 0)
+            if (lines.Any(line => line.UnitPrice <= 0))
             {
-                throw new InvalidOperationException("\u5165\u5E93\u5355\u4EF7\u5FC5\u987B\u5927\u4E8E 0\u3002");
+                throw new InvalidOperationException("\u6240\u6709\u5DF2\u586B\u5199\u7684\u5165\u5E93\u660E\u7EC6\u90FD\u5FC5\u987B\u8BBE\u7F6E\u5927\u4E8E 0 \u7684\u5355\u4EF7\u3002");
             }
 
             var customerName = ResolvedCustomerName;
-            await _databaseService.AddInboundRecordAsync(SelectedCategory.Id, normalizedQuantity, UnitPrice, customerName);
+            var confirmation = await _databaseService.AddInboundOrderAsync(customerName, lines);
 
-            Quantity = SelectedCategory.UnitType == WeightUnit.Piece ? 1 : 0;
             NewCustomerName = string.Empty;
-            StatusMessage = "\u5165\u5E93\u5DF2\u4FDD\u5B58\uff0C\u5E93\u5B58\u5DF2\u66F4\u65B0\u3002";
+            StatusMessage = "\u5165\u5E93\u5DF2\u4FDD\u5B58\uff0C\u5E93\u5B58\u548C\u5165\u5E93\u8BA2\u5355\u5DF2\u66F4\u65B0\u3002";
 
-            await LoadAsync();
+            await LoadAsync(clearDraft: true);
 
-            if (!string.IsNullOrWhiteSpace(customerName))
+            SelectedCustomer = Customers.FirstOrDefault(customer =>
+                string.Equals(customer.Name, customerName, StringComparison.OrdinalIgnoreCase));
+
+            return confirmation;
+        }
+
+        private void RebuildCategoryEntries(
+            IReadOnlyList<CategoryModel> categories,
+            IReadOnlyDictionary<long, (double Quantity, double UnitPrice)> preservedDraft,
+            bool clearDraft)
+        {
+            foreach (var entry in CategoryEntries)
             {
-                SelectedCustomer = Customers.FirstOrDefault(customer =>
-                    string.Equals(customer.Name, customerName, StringComparison.OrdinalIgnoreCase));
+                entry.PropertyChanged -= OnDraftLinePropertyChanged;
+            }
+
+            CategoryEntries.Clear();
+
+            foreach (var category in categories)
+            {
+                var suggestedUnitPrice = GetRememberedPrice(category.Id) ?? category.BuyPrice;
+                var entry = new InboundOrderDraftLineModel(category, suggestedUnitPrice);
+
+                if (!clearDraft && preservedDraft.TryGetValue(category.Id, out var draft))
+                {
+                    entry.Quantity = draft.Quantity;
+                    entry.UnitPrice = draft.UnitPrice > 0 ? draft.UnitPrice : suggestedUnitPrice;
+                }
+
+                entry.PropertyChanged += OnDraftLinePropertyChanged;
+                CategoryEntries.Add(entry);
             }
         }
 
-        private void ApplySuggestedUnitPrice()
+        private void ApplySuggestedUnitPrices()
         {
-            if (SelectedCategory is null)
+            foreach (var entry in CategoryEntries)
             {
-                return;
+                var rememberedPrice = GetRememberedPrice(entry.CategoryId) ?? entry.Category.BuyPrice;
+                entry.ApplySuggestedUnitPrice(rememberedPrice);
             }
-
-            var rememberedPrice = GetRememberedPrice();
-            UnitPrice = rememberedPrice ?? SelectedCategory.BuyPrice;
         }
 
-        private double? GetRememberedPrice()
+        private double? GetRememberedPrice(long categoryId)
         {
-            if (SelectedCategory is null)
-            {
-                return null;
-            }
-
             var customerId = ResolveCustomerId();
             if (!customerId.HasValue)
             {
@@ -275,7 +288,7 @@ namespace ClothingRecycler.Desktop.ViewModels
             }
 
             return _priceMemories
-                .FirstOrDefault(memory => memory.CustomerId == customerId.Value && memory.CategoryId == SelectedCategory.Id)
+                .FirstOrDefault(memory => memory.CustomerId == customerId.Value && memory.CategoryId == categoryId)
                 ?.Price;
         }
 
@@ -292,22 +305,27 @@ namespace ClothingRecycler.Desktop.ViewModels
             return SelectedCustomer?.Id;
         }
 
-        private double NormalizeQuantity()
+        private void OnDraftLinePropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            var quantity = Math.Max(0, Quantity);
-
-            return SelectedCategory?.UnitType == WeightUnit.Piece
-                ? Math.Round(quantity)
-                : Math.Round(quantity, 2);
+            if (e.PropertyName is nameof(InboundOrderDraftLineModel.Quantity)
+                or nameof(InboundOrderDraftLineModel.UnitPrice)
+                or nameof(InboundOrderDraftLineModel.HasInput)
+                or nameof(InboundOrderDraftLineModel.LineAmount))
+            {
+                RaiseComputedStateChanged();
+            }
         }
 
         private void RaiseComputedStateChanged()
         {
-            OnPropertyChanged(nameof(CurrentStockText));
-            OnPropertyChanged(nameof(SelectedUnitText));
             OnPropertyChanged(nameof(EffectiveCustomerText));
+            OnPropertyChanged(nameof(FilledCategoryCountText));
+            OnPropertyChanged(nameof(QuantitySummaryText));
             OnPropertyChanged(nameof(TotalCostText));
+            OnPropertyChanged(nameof(HasCustomerSelection));
             OnPropertyChanged(nameof(CanSubmit));
+            OnPropertyChanged(nameof(CustomerPromptVisibility));
+            OnPropertyChanged(nameof(EntryPanelVisibility));
         }
 
         private static string Currency(double value) => $"\u00A5{value:0.##}";

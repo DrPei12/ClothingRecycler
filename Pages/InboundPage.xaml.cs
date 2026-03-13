@@ -25,7 +25,13 @@ namespace ClothingRecycler.Desktop.Pages
         {
             try
             {
-                await ViewModel.SubmitAsync();
+                var confirmation = await ViewModel.SubmitAsync();
+                var window = new ClothingRecycler.Desktop.OrderWindows.InboundOrderConfirmationWindow(confirmation);
+                ClothingRecycler.Desktop.Helpers.SecondaryWindowManager.Show(
+                    window,
+                    "\u5165\u5E93\u786E\u8BA4\u5355",
+                    preferredWidth: 1520,
+                    preferredHeight: 1000);
             }
             catch (Exception ex)
             {

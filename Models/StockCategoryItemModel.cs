@@ -42,8 +42,6 @@ namespace ClothingRecycler.Desktop.Models
 
         public string InventoryCostText => Category.InventoryCostText;
 
-        public string ForecastRevenueText => Category.ForecastRevenueText;
-
         public string PriceSpreadText => Currency(Math.Round(Category.SellPrice - Category.BuyPrice, 2));
 
         public double LowStockThreshold => Category.UnitType == WeightUnit.Piece ? 10 : 5;

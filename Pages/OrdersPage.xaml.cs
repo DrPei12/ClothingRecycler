@@ -1,10 +1,16 @@
+using System.Diagnostics;
+
 namespace ClothingRecycler.Desktop.Pages
 {
     public sealed partial class OrdersPage : Page
     {
+        private readonly OrderExportService _orderExportService;
+        private bool _isExporting;
+
         public OrdersPage()
         {
             ViewModel = App.GetService<OrdersViewModel>();
+            _orderExportService = App.GetService<OrderExportService>();
             InitializeComponent();
             Loaded += OnLoaded;
         }
@@ -106,6 +112,20 @@ namespace ClothingRecycler.Desktop.Pages
             }
         }
 
+        private async void OnExportPngClick(object sender, RoutedEventArgs e)
+        {
+            await ExportSelectedOrderAsync(
+                exporter: () => _orderExportService.ExportAsPngAsync(OrderExportRoot, ViewModel.SelectedOrder!.OrderNumber),
+                successTitle: "PNG 导出完成");
+        }
+
+        private async void OnExportPdfClick(object sender, RoutedEventArgs e)
+        {
+            await ExportSelectedOrderAsync(
+                exporter: () => _orderExportService.ExportAsPdfAsync(OrderExportRoot, ViewModel.SelectedOrder!.OrderNumber),
+                successTitle: "PDF 导出完成");
+        }
+
         private async Task ShowMessageAsync(string title, string message)
         {
             var dialog = new ContentDialog
@@ -117,6 +137,54 @@ namespace ClothingRecycler.Desktop.Pages
             };
 
             await dialog.ShowAsync();
+        }
+
+        private async Task ExportSelectedOrderAsync(Func<Task<string>> exporter, string successTitle)
+        {
+            if (!ViewModel.HasSelectedOrder || _isExporting)
+            {
+                return;
+            }
+
+            try
+            {
+                _isExporting = true;
+                await Task.Yield();
+
+                var exportPath = await exporter();
+                var dialog = new ContentDialog
+                {
+                    XamlRoot = XamlRoot,
+                    Title = successTitle,
+                    PrimaryButtonText = "打开目录",
+                    CloseButtonText = "知道了",
+                    DefaultButton = ContentDialogButton.Close,
+                    Content = $"订单确认文件已导出到：\n{exportPath}"
+                };
+
+                if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+                {
+                    OpenContainingFolder(exportPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowMessageAsync("导出失败", ex.Message);
+            }
+            finally
+            {
+                _isExporting = false;
+            }
+        }
+
+        private static void OpenContainingFolder(string filePath)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = $"/select,\"{filePath}\"",
+                UseShellExecute = true
+            });
         }
     }
 }

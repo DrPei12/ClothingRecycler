@@ -69,6 +69,7 @@ internal static class Program
                 Path.GetTempPath(),
                 "ClothingRecyclerInstaller",
                 Guid.NewGuid().ToString("N"));
+            string? cleanupWarningMessage = null;
 
             try
             {
@@ -76,17 +77,20 @@ internal static class Program
 
                 Directory.CreateDirectory(tempRoot);
                 var payloadZipPath = Path.Combine(tempRoot, "payload.zip");
+                var payloadExtractRoot = Path.Combine(tempRoot, "payload");
                 ExtractPayload(payloadZipPath);
+                ZipFile.ExtractToDirectory(payloadZipPath, payloadExtractRoot, overwriteFiles: true);
 
-                Directory.CreateDirectory(installRoot);
-                ZipFile.ExtractToDirectory(payloadZipPath, installRoot, overwriteFiles: true);
+                var shouldRefreshExistingInstall = ShouldRefreshExistingInstall(installRoot, previousInstallRoot);
+                PrepareInstallDirectory(installRoot, shouldRefreshExistingInstall);
+                CopyDirectoryContents(payloadExtractRoot, installRoot);
 
                 Directory.CreateDirectory(startMenuFolder);
                 CreateShortcut(desktopShortcutPath, exePath, installRoot, exePath);
                 CreateShortcut(startMenuShortcutPath, exePath, installRoot, exePath);
                 CreateShortcut(uninstallShortcutPath, uninstallBatPath, installRoot, exePath);
                 WriteUninstallRegistration(version, installRoot, exePath, uninstallBatPath);
-                TryDeletePreviousInstall(previousInstallRoot, installRoot);
+                cleanupWarningMessage = TryDeletePreviousInstall(previousInstallRoot, installRoot);
             }
             finally
             {
@@ -95,16 +99,29 @@ internal static class Program
 
             if (!quietMode)
             {
+                var successMessage = $"安装完成。{Environment.NewLine}{Environment.NewLine}安装目录：{installRoot}";
+                var icon = MessageBoxIcon.Information;
+
+                if (!string.IsNullOrWhiteSpace(cleanupWarningMessage))
+                {
+                    successMessage += $"{Environment.NewLine}{Environment.NewLine}{cleanupWarningMessage}";
+                    icon = MessageBoxIcon.Warning;
+                }
+
                 MessageBox.Show(
-                    $"安装完成。{Environment.NewLine}{Environment.NewLine}安装目录：{installRoot}",
+                    successMessage,
                     AppName,
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                    icon);
 
                 if (selection.LaunchAfterInstall)
                 {
                     StartInstalledApp(exePath, installRoot);
                 }
+            }
+            else if (!string.IsNullOrWhiteSpace(cleanupWarningMessage))
+            {
+                Console.Error.WriteLine(cleanupWarningMessage);
             }
 
             return 0;
@@ -122,6 +139,10 @@ internal static class Program
                     AppName,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+            }
+            else
+            {
+                Console.Error.WriteLine(ex.Message);
             }
 
             return 1;
@@ -197,7 +218,7 @@ internal static class Program
             Top = 46,
             Width = 580,
             Height = 36,
-            Text = "建议选择一个专用文件夹。默认会使用当前用户的本地程序目录，也可以改到其他磁盘。",
+            Text = "建议选择一个专用文件夹。默认会使用当前用户的本地程序目录，也可以改到其他磁盘。"
         };
 
         using var pathLabel = new Label
@@ -283,7 +304,7 @@ internal static class Program
             }
         };
 
-        installButton.Click += (_, args) =>
+        installButton.Click += (_, _) =>
         {
             try
             {
@@ -358,7 +379,8 @@ internal static class Program
 
         if (Directory.Exists(normalizedInstallRoot) &&
             Directory.EnumerateFileSystemEntries(normalizedInstallRoot).Any() &&
-            !AreSamePaths(previousInstallRoot, normalizedInstallRoot))
+            !AreSamePaths(previousInstallRoot, normalizedInstallRoot) &&
+            !LooksLikeExistingInstall(normalizedInstallRoot))
         {
             if (quietMode)
             {
@@ -434,7 +456,6 @@ internal static class Program
             }
             catch
             {
-                // 写权限检测文件删除失败不影响主流程。
             }
         }
     }
@@ -468,10 +489,74 @@ internal static class Program
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         if (version is null)
         {
-            return "1.0.0";
+            return "1.0.1";
         }
 
         return $"{version.Major}.{version.Minor}.{version.Build}";
+    }
+
+    private static bool ShouldRefreshExistingInstall(string installRoot, string? previousInstallRoot)
+    {
+        return AreSamePaths(previousInstallRoot, installRoot) || LooksLikeExistingInstall(installRoot);
+    }
+
+    private static bool LooksLikeExistingInstall(string installRoot)
+    {
+        if (!Directory.Exists(installRoot))
+        {
+            return false;
+        }
+
+        return File.Exists(Path.Combine(installRoot, ExeName))
+            || File.Exists(Path.Combine(installRoot, UninstallBatName));
+    }
+
+    private static void PrepareInstallDirectory(string installRoot, bool shouldRefreshExistingInstall)
+    {
+        Directory.CreateDirectory(installRoot);
+
+        if (!shouldRefreshExistingInstall)
+        {
+            return;
+        }
+
+        try
+        {
+            foreach (var entry in Directory.EnumerateFileSystemEntries(installRoot))
+            {
+                if (Directory.Exists(entry))
+                {
+                    Directory.Delete(entry, recursive: true);
+                }
+                else
+                {
+                    File.Delete(entry);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("无法清理旧版本程序文件，请关闭可能占用这些文件的程序后重试。", ex);
+        }
+    }
+
+    private static void CopyDirectoryContents(string sourceRoot, string destinationRoot)
+    {
+        Directory.CreateDirectory(destinationRoot);
+
+        foreach (var directoryPath in Directory.GetDirectories(sourceRoot, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceRoot, directoryPath);
+            Directory.CreateDirectory(Path.Combine(destinationRoot, relativePath));
+        }
+
+        foreach (var filePath in Directory.GetFiles(sourceRoot, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceRoot, filePath);
+            var destinationPath = Path.Combine(destinationRoot, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+            File.Copy(filePath, destinationPath, overwrite: true);
+        }
     }
 
     private static void StopRunningApp()
@@ -485,7 +570,6 @@ internal static class Program
             }
             catch
             {
-                // 忽略停止旧实例失败，后续复制时会再次抛出明确错误。
             }
         }
     }
@@ -528,31 +612,32 @@ internal static class Program
         key.SetValue("NoRepair", 1, RegistryValueKind.DWord);
     }
 
-    private static void TryDeletePreviousInstall(string? previousInstallRoot, string installRoot)
+    private static string? TryDeletePreviousInstall(string? previousInstallRoot, string installRoot)
     {
+        if (string.IsNullOrWhiteSpace(previousInstallRoot) || AreSamePaths(previousInstallRoot, installRoot))
+        {
+            return null;
+        }
+
+        if (!Directory.Exists(previousInstallRoot))
+        {
+            return null;
+        }
+
+        var previousExePath = Path.Combine(previousInstallRoot, ExeName);
+        if (!File.Exists(previousExePath))
+        {
+            return null;
+        }
+
         try
         {
-            if (string.IsNullOrWhiteSpace(previousInstallRoot) || AreSamePaths(previousInstallRoot, installRoot))
-            {
-                return;
-            }
-
-            if (!Directory.Exists(previousInstallRoot))
-            {
-                return;
-            }
-
-            var previousExePath = Path.Combine(previousInstallRoot, ExeName);
-            if (!File.Exists(previousExePath))
-            {
-                return;
-            }
-
-            TryDeleteDirectory(previousInstallRoot);
+            Directory.Delete(previousInstallRoot, recursive: true);
+            return null;
         }
         catch
         {
-            // 旧目录清理失败不影响本次安装。
+            return $"注意：新版本已经安装完成，但旧版本目录未能自动删除，请手动检查并清理：{previousInstallRoot}";
         }
     }
 
@@ -567,7 +652,6 @@ internal static class Program
         }
         catch
         {
-            // 临时或旧安装目录删除失败不影响主流程。
         }
     }
 

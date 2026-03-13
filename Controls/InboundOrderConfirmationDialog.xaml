@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentDialog
+    x:Class="ClothingRecycler.Desktop.Controls.InboundOrderConfirmationDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:ClothingRecycler.Desktop.Models"
+    mc:Ignorable="d"
+    Width="980"
+    CloseButtonText="&#x5B8C;&#x6210;"
+    DefaultButton="Close">
+    <ScrollViewer
+        MaxHeight="760"
+        HorizontalScrollBarVisibility="Auto"
+        HorizontalScrollMode="Auto">
+        <StackPanel MinWidth="940" Spacing="16">
+            <StackPanel Spacing="6">
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x5165;&#x5E93;&#x786E;&#x8BA4;&#x5355;" />
+                <TextBlock Opacity="0.72" Text="&#x53EF;&#x76F4;&#x63A5;&#x62CD;&#x7167;&#x53D1;&#x7ED9;&#x5BA2;&#x6237;&#x786E;&#x8BA4;&#x672C;&#x6B21;&#x5165;&#x5E93;&#x660E;&#x7EC6;&#x3002;" TextWrapping="WrapWholeWords" />
+            </StackPanel>
+
+            <Border Style="{StaticResource CardSurfaceStyle}">
+                <Grid ColumnSpacing="16" RowSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                        <TextBlock Opacity="0.72" Text="&#x8BA2;&#x5355;&#x53F7;" />
+                        <TextBlock FontWeight="SemiBold" Text="{x:Bind Confirmation.OrderNumber, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                        <TextBlock Opacity="0.72" Text="&#x4EA4;&#x6613;&#x65F6;&#x95F4;" />
+                        <TextBlock FontWeight="SemiBold" Text="{x:Bind Confirmation.TimestampText, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                        <TextBlock Opacity="0.72" Text="&#x4EA4;&#x6613;&#x5BA2;&#x6237;" />
+                        <TextBlock FontWeight="SemiBold" Text="{x:Bind Confirmation.CustomerDisplayName, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                        <TextBlock Opacity="0.72" Text="&#x5165;&#x5E93;&#x7C7B;&#x522B;" />
+                        <TextBlock FontWeight="SemiBold" Text="{x:Bind Confirmation.CategoriesText, Mode=OneWay}" TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+
+                    <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Opacity="0.72" Text="&#x7C7B;&#x522B;&#x6570;" />
+                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind Confirmation.CategoryCountText, Mode=OneWay}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Opacity="0.72" Text="&#x6570;&#x91CF;&#x6C47;&#x603B;" />
+                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind Confirmation.QuantitySummaryText, Mode=OneWay}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Opacity="0.72" Text="&#x672C;&#x6B21;&#x603B;&#x6210;&#x672C;" />
+                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind Confirmation.TotalAmountText, Mode=OneWay}" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource CardSurfaceStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x660E;&#x7EC6;&#x5217;&#x8868;" />
+
+                    <Grid ColumnSpacing="12" Padding="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Style="{StaticResource TableHeaderTextStyle}" Text="&#x4EA4;&#x6613;&#x7C7B;&#x522B;" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource TableHeaderTextStyle}" Text="&#x4EA4;&#x6613;&#x91CF;" />
+                        <TextBlock Grid.Column="2" Style="{StaticResource TableHeaderTextStyle}" Text="&#x4EA4;&#x6613;&#x5355;&#x4EF7;" />
+                        <TextBlock Grid.Column="3" Style="{StaticResource TableHeaderTextStyle}" Text="&#x5C0F;&#x8BA1;" />
+                    </Grid>
+
+                    <ListView
+                        ItemsSource="{x:Bind Confirmation.Items, Mode=OneWay}"
+                        SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:OrderDetailItemModel">
+                                <Grid ColumnSpacing="12" Padding="0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" FontWeight="SemiBold" Text="{x:Bind CategoryName}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{x:Bind QuantityText}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{x:Bind UnitPriceText}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="3" Text="{x:Bind LineAmountText}" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

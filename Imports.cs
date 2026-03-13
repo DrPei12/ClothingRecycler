@@ -1,4 +1,5 @@
 global using System.Collections.ObjectModel;
+global using System.ComponentModel;
 global using System.Globalization;
 
 global using CommunityToolkit.Mvvm.ComponentModel;

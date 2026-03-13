@@ -16,10 +16,10 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>ClothingRecycler.Desktop</RootNamespace>
-        <Version>1.0.0</Version>
-        <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <FileVersion>1.0.0.0</FileVersion>
-        <InformationalVersion>1.0.0-local</InformationalVersion>
+        <Version>1.0.1</Version>
+        <AssemblyVersion>1.0.1.0</AssemblyVersion>
+        <FileVersion>1.0.1.0</FileVersion>
+        <InformationalVersion>1.0.1-local</InformationalVersion>
         <Company>ClothingRecycler</Company>
         <Product>衣物回收管理</Product>
         <Authors>Codex</Authors>
@@ -50,6 +50,7 @@
         <None Remove="ClothingRecycler.Desktop.slnx" />
         <Compile Remove="ClothingRecycler.Desktop.Tests\\**\\*.cs" />
         <Compile Remove="Installer\\**\\*.cs" />
+        <Compile Remove="tmp\\**\\*.cs" />
     </ItemGroup>
 
     <ItemGroup>
