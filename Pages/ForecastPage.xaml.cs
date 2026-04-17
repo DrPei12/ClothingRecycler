@@ -20,5 +20,19 @@ namespace ClothingRecycler.Desktop.Pages
         {
             await ViewModel.LoadAsync();
         }
+
+        private void OnProfitFormulaClick(object sender, RoutedEventArgs e)
+        {
+            var window = new ClothingRecycler.Desktop.FormulaWindows.ForecastFormulaWindow(
+                ViewModel.ProjectedSalesAmountText,
+                ViewModel.TotalInventoryCostText,
+                ViewModel.ProjectedNetProfitText);
+
+            ClothingRecycler.Desktop.Helpers.SecondaryWindowManager.Show(
+                window,
+                "预计收入计算公式",
+                preferredWidth: 1120,
+                preferredHeight: 780);
+        }
     }
 }

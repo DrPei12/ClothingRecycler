@@ -8,7 +8,9 @@ namespace ClothingRecycler.Desktop.Models
 
         public double TotalInventoryCost { get; init; }
 
-        public double ForecastRevenue { get; init; }
+        public double ProjectedSalesAmount { get; init; }
+
+        public double ProjectedNetProfit { get; init; }
 
         public double TodayInboundAmount { get; init; }
 

@@ -82,6 +82,7 @@
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="0.7*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
@@ -92,9 +93,16 @@
                     SmallChange="1"
                     ValueChanged="OnNumberValueChanged" />
 
+                <ComboBox
+                    x:Name="InputUnitComboBox"
+                    Grid.Column="1"
+                    DisplayMemberPath="DisplayName"
+                    Header="&#x672C;&#x6B21;&#x5355;&#x4F4D;"
+                    SelectionChanged="OnInputUnitSelectionChanged" />
+
                 <NumberBox
                     x:Name="UnitPriceBox"
-                    Grid.Column="1"
+                    Grid.Column="2"
                     Header="&#x5355;&#x4EF7;"
                     Minimum="0.01"
                     SmallChange="1"

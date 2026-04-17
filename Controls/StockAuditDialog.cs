@@ -15,6 +15,7 @@ namespace ClothingRecycler.Desktop.Controls
             PrimaryButtonText = "\u4FDD\u5B58\u76D8\u70B9";
             CloseButtonText = "\u53D6\u6D88";
             DefaultButton = ContentDialogButton.Primary;
+            MinWidth = 520;
             PrimaryButtonClick += OnPrimaryButtonClick;
 
             _validationInfoBar = new InfoBar
@@ -35,103 +36,65 @@ namespace ClothingRecycler.Desktop.Controls
             {
                 AcceptsReturn = true,
                 PlaceholderText = "\u4F8B\u5982\uFF1A\u665A\u73ED\u76D8\u70B9\u3001\u5E93\u533A\u6574\u7406\u540E\u590D\u6838",
-                TextWrapping = TextWrapping.WrapWholeWords
+                TextWrapping = TextWrapping.Wrap
             };
 
-            Content = new StackPanel
+            var root = new StackPanel
             {
-                Spacing = 12,
-                Children =
-                {
-                    _validationInfoBar,
-                    new StackPanel
-                    {
-                        Spacing = 4,
-                        Children =
-                        {
-                            new TextBlock
-                            {
-                                Opacity = 0.72,
-                                Text = "\u5206\u7C7B"
-                            },
-                            new TextBlock
-                            {
-                                FontSize = 18,
-                                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                                Text = item.Name
-                            }
-                        }
-                    },
-                    new Grid
-                    {
-                        ColumnSpacing = 12,
-                        ColumnDefinitions =
-                        {
-                            new ColumnDefinition(),
-                            new ColumnDefinition()
-                        },
-                        Children =
-                        {
-                            new StackPanel
-                            {
-                                Spacing = 4,
-                                Children =
-                                {
-                                    new TextBlock
-                                    {
-                                        Opacity = 0.72,
-                                        Text = "\u7CFB\u7EDF\u5E93\u5B58"
-                                    },
-                                    new TextBlock
-                                    {
-                                        FontSize = 18,
-                                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                                        Text = item.DisplayStockText
-                                    }
-                                }
-                            },
-                            CreateActualQuantityPanel()
-                        }
-                    },
-                    new StackPanel
-                    {
-                        Spacing = 4,
-                        Children =
-                        {
-                            new TextBlock
-                            {
-                                Opacity = 0.72,
-                                Text = "\u76D8\u70B9\u5907\u6CE8"
-                            },
-                            _noteTextBox
-                        }
-                    },
-                    new TextBlock
-                    {
-                        Opacity = 0.72,
-                        Text = "\u76D8\u70B9\u4F1A\u7559\u5B58\u4E00\u7B14\u72EC\u7ACB\u8BB0\u5F55\u3002\u5982\u679C\u76D8\u70B9\u6570\u91CF\u4E0E\u7CFB\u7EDF\u4E0D\u4E00\u81F4\uFF0C\u4F1A\u540C\u65F6\u751F\u6210\u4E00\u7B14\u5E93\u5B58\u6821\u6B63\u8BB0\u5F55\u3002",
-                        TextWrapping = TextWrapping.WrapWholeWords
-                    }
-                }
+                Spacing = 12
             };
+            root.Children.Add(_validationInfoBar);
+            root.Children.Add(CreateReadOnlyField("\u5206\u7C7B", item.Name, emphasize: true));
+            root.Children.Add(CreateReadOnlyField("\u7CFB\u7EDF\u5E93\u5B58", item.DisplayStockText, emphasize: true));
+            root.Children.Add(CreateEditableField("\u5B9E\u9645\u76D8\u70B9\u6570\u91CF", _actualQuantityBox));
+            root.Children.Add(CreateEditableField("\u76D8\u70B9\u5907\u6CE8", _noteTextBox));
+            root.Children.Add(new TextBlock
+            {
+                Opacity = 0.72,
+                Text = "\u76D8\u70B9\u4F1A\u7559\u4E0B\u4E00\u7B14\u72EC\u7ACB\u76D8\u70B9\u8BB0\u5F55\uFF1B\u5982\u679C\u5B9E\u9645\u76D8\u70B9\u6570\u91CF\u548C\u7CFB\u7EDF\u5E93\u5B58\u4E0D\u4E00\u81F4\uFF0C\u7CFB\u7EDF\u4F1A\u540C\u65F6\u751F\u6210\u4E00\u7B14\u5E93\u5B58\u6821\u6B63\u8BB0\u5F55\u3002",
+                TextWrapping = TextWrapping.WrapWholeWords
+            });
+
+            Content = root;
         }
 
         public StockAuditInputModel? Result { get; private set; }
 
-        private FrameworkElement CreateActualQuantityPanel()
+        private static FrameworkElement CreateReadOnlyField(string label, string value, bool emphasize = false)
         {
             var panel = new StackPanel
             {
                 Spacing = 4
             };
-            Grid.SetColumn(panel, 1);
 
             panel.Children.Add(new TextBlock
             {
                 Opacity = 0.72,
-                Text = "\u5B9E\u9645\u76D8\u70B9\u6570\u91CF"
+                Text = label
             });
-            panel.Children.Add(_actualQuantityBox);
+            panel.Children.Add(new TextBlock
+            {
+                Text = value,
+                FontSize = emphasize ? 18 : 14,
+                FontWeight = emphasize ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal
+            });
+
+            return panel;
+        }
+
+        private static FrameworkElement CreateEditableField(string label, FrameworkElement input)
+        {
+            var panel = new StackPanel
+            {
+                Spacing = 4
+            };
+
+            panel.Children.Add(new TextBlock
+            {
+                Opacity = 0.72,
+                Text = label
+            });
+            panel.Children.Add(input);
 
             return panel;
         }

@@ -24,6 +24,14 @@ namespace ClothingRecycler.Desktop.Models
 
         public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.Now;
 
+        public double? InventoryCostOverride { get; set; }
+
+        public double? ForecastSalesAmountOverride { get; set; }
+
+        public double? ForecastNetProfitOverride { get; set; }
+
+        public int PriceBucketCount { get; set; }
+
         public string UnitLabel => UnitType switch
         {
             WeightUnit.Kilogram => "kg",
@@ -44,9 +52,13 @@ namespace ClothingRecycler.Desktop.Models
             ? $"{StockInPieces} {UnitLabel}"
             : $"{DisplayStock:0.##} {UnitLabel}";
 
-        public double InventoryCost => Math.Round(DisplayStock * BuyPrice, 2);
+        public double InventoryCost => Math.Round(InventoryCostOverride ?? (DisplayStock * BuyPrice), 2);
 
-        public double ForecastRevenue => Math.Round(DisplayStock * SellPrice, 2);
+        public double ForecastSalesAmount => Math.Round(ForecastSalesAmountOverride ?? (DisplayStock * SellPrice), 2);
+
+        public double ForecastNetProfit => Math.Round(ForecastNetProfitOverride ?? (ForecastSalesAmount - InventoryCost), 2);
+
+        public double ForecastRevenue => ForecastNetProfit;
 
         public string BuyPriceText => Currency(BuyPrice);
 
@@ -54,7 +66,11 @@ namespace ClothingRecycler.Desktop.Models
 
         public string InventoryCostText => Currency(InventoryCost);
 
-        public string ForecastRevenueText => Currency(ForecastRevenue);
+        public string ForecastSalesAmountText => Currency(ForecastSalesAmount);
+
+        public string ForecastNetProfitText => Currency(ForecastNetProfit);
+
+        public string ForecastRevenueText => ForecastNetProfitText;
 
         public bool IsLowStock => UnitType == WeightUnit.Piece ? DisplayStock <= 10 : DisplayStock <= 5;
 

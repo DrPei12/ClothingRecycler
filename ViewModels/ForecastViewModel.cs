@@ -3,9 +3,9 @@ namespace ClothingRecycler.Desktop.ViewModels
     public sealed class ForecastViewModel : ViewModelBase
     {
         private readonly LocalDatabaseService _databaseService;
-        private string _totalForecastRevenueText = "\u00A50";
+        private string _projectedNetProfitText = "\u00A50";
+        private string _projectedSalesAmountText = "\u00A50";
         private string _totalInventoryCostText = "\u00A50";
-        private string _estimatedGrossMarginText = "\u00A50";
         private string _categoryCountText = "0";
         private string _lowStockCountText = "0";
 
@@ -21,22 +21,22 @@ namespace ClothingRecycler.Desktop.ViewModels
 
         public ObservableCollection<CategoryModel> TopSpreadCategories { get; } = [];
 
-        public string TotalForecastRevenueText
+        public string ProjectedNetProfitText
         {
-            get => _totalForecastRevenueText;
-            private set => SetProperty(ref _totalForecastRevenueText, value);
+            get => _projectedNetProfitText;
+            private set => SetProperty(ref _projectedNetProfitText, value);
+        }
+
+        public string ProjectedSalesAmountText
+        {
+            get => _projectedSalesAmountText;
+            private set => SetProperty(ref _projectedSalesAmountText, value);
         }
 
         public string TotalInventoryCostText
         {
             get => _totalInventoryCostText;
             private set => SetProperty(ref _totalInventoryCostText, value);
-        }
-
-        public string EstimatedGrossMarginText
-        {
-            get => _estimatedGrossMarginText;
-            private set => SetProperty(ref _estimatedGrossMarginText, value);
         }
 
         public string CategoryCountText
@@ -63,11 +63,11 @@ namespace ClothingRecycler.Desktop.ViewModels
 
             try
             {
-                var categories = await _databaseService.GetCategoriesAsync();
+                var categories = await _databaseService.GetCategoriesWithPricingAsync();
                 var summary = await _databaseService.GetDashboardSummaryAsync();
 
                 var topForecast = categories
-                    .OrderByDescending(category => category.ForecastRevenue)
+                    .OrderByDescending(category => category.ForecastNetProfit)
                     .ThenBy(category => category.Name)
                     .Take(12)
                     .ToList();
@@ -85,9 +85,9 @@ namespace ClothingRecycler.Desktop.ViewModels
                     .Take(8)
                     .ToList();
 
-                TotalForecastRevenueText = Currency(summary.ForecastRevenue);
+                ProjectedNetProfitText = Currency(summary.ProjectedNetProfit);
+                ProjectedSalesAmountText = Currency(summary.ProjectedSalesAmount);
                 TotalInventoryCostText = Currency(summary.TotalInventoryCost);
-                EstimatedGrossMarginText = Currency(summary.ForecastRevenue - summary.TotalInventoryCost);
                 CategoryCountText = summary.CategoryCount.ToString(CultureInfo.InvariantCulture);
                 LowStockCountText = summary.LowStockCount.ToString(CultureInfo.InvariantCulture);
 

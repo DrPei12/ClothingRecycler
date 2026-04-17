@@ -8,7 +8,8 @@ namespace ClothingRecycler.Desktop.ViewModels
         private string _todayInboundAmount = Currency(0);
         private string _todayOutboundAmount = Currency(0);
         private string _totalInventoryCost = Currency(0);
-        private string _forecastRevenue = Currency(0);
+        private string _projectedSalesAmount = Currency(0);
+        private string _projectedNetProfit = Currency(0);
         private bool _isQuickStartVisible;
 
         public DashboardViewModel(LocalDatabaseService databaseService)
@@ -49,10 +50,16 @@ namespace ClothingRecycler.Desktop.ViewModels
             private set => SetProperty(ref _totalInventoryCost, value);
         }
 
-        public string ForecastRevenue
+        public string ProjectedSalesAmount
         {
-            get => _forecastRevenue;
-            private set => SetProperty(ref _forecastRevenue, value);
+            get => _projectedSalesAmount;
+            private set => SetProperty(ref _projectedSalesAmount, value);
+        }
+
+        public string ProjectedNetProfit
+        {
+            get => _projectedNetProfit;
+            private set => SetProperty(ref _projectedNetProfit, value);
         }
 
         public bool IsQuickStartVisible
@@ -73,7 +80,8 @@ namespace ClothingRecycler.Desktop.ViewModels
                 CategoryCount = summary.CategoryCount;
                 LowStockCount = summary.LowStockCount;
                 TotalInventoryCost = Currency(summary.TotalInventoryCost);
-                ForecastRevenue = Currency(summary.ForecastRevenue);
+                ProjectedSalesAmount = Currency(summary.ProjectedSalesAmount);
+                ProjectedNetProfit = Currency(summary.ProjectedNetProfit);
                 TodayInboundAmount = Currency(summary.TodayInboundAmount);
                 TodayOutboundAmount = Currency(summary.TodayOutboundAmount);
                 IsQuickStartVisible = summary.CategoryCount == 0;

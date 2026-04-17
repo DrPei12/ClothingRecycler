@@ -120,6 +120,95 @@ public sealed class LocalDatabaseServiceTests
     }
 
     [Fact]
+    public async Task UpdateOrderAsync_PreservesInboundTransactionUnitWhenEditing()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("大白", WeightUnit.Kilogram, buyPrice: 1, sellPrice: 3);
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 10, unitPrice: 0.4, customerName: "Alice", inputUnitType: WeightUnit.Jin);
+
+        var inboundOrder = (await scope.Service.GetRecentOrdersAsync("inbound", 10)).Single();
+        var order = await scope.Service.GetOrderEditModelAsync(inboundOrder.Id);
+
+        Assert.Equal(WeightUnit.Jin, order.UnitType);
+        Assert.Equal(10, order.Quantity, 3);
+
+        var updatedOrder = new OrderEditModel
+        {
+            OrderId = order.OrderId,
+            OrderNumber = order.OrderNumber,
+            Type = order.Type,
+            CustomerId = order.CustomerId,
+            CustomerName = order.CustomerName,
+            CategoryId = order.CategoryId,
+            Quantity = 20,
+            UnitPrice = 0.5,
+            UnitType = WeightUnit.Jin,
+            Timestamp = order.Timestamp
+        };
+
+        await scope.Service.UpdateOrderAsync(updatedOrder);
+
+        var category = (await scope.Service.GetCategoriesAsync()).Single(item => item.Id == categoryId);
+        var inboundRecord = (await scope.Service.GetRecentInboundRecordsAsync(10)).Single(item => item.CategoryId == categoryId);
+        var customer = (await scope.Service.GetCustomersAsync()).Single(item => item.Name == "Alice");
+        var memories = await scope.Service.GetCustomerPriceMemoriesAsync(customer.Id);
+
+        Assert.Equal(10, category.Stock, 3);
+        Assert.Equal(1, category.BuyPrice, 3);
+        Assert.Equal(20, inboundRecord.Quantity, 3);
+        Assert.Equal(WeightUnit.Jin, inboundRecord.UnitType);
+        Assert.Single(memories);
+        Assert.Equal(1, memories[0].Price, 3);
+    }
+
+    [Fact]
+    public async Task UpdateOrderAsync_PreservesOutboundTransactionUnitWhenEditing()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("卫衣", WeightUnit.Kilogram, buyPrice: 4, sellPrice: 8);
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 20, unitPrice: 4, customerName: "Supplier");
+        await scope.Service.AddOutboundRecordAsync(categoryId, quantity: 10, unitPrice: 1.5, customerName: "Mall", inputUnitType: WeightUnit.Jin);
+
+        var outboundOrder = (await scope.Service.GetRecentOrdersAsync("outbound", 10)).Single();
+        var order = await scope.Service.GetOrderEditModelAsync(outboundOrder.Id);
+
+        Assert.Equal(WeightUnit.Jin, order.UnitType);
+        Assert.Equal(10, order.Quantity, 3);
+
+        var updatedOrder = new OrderEditModel
+        {
+            OrderId = order.OrderId,
+            OrderNumber = order.OrderNumber,
+            Type = order.Type,
+            CustomerId = order.CustomerId,
+            CustomerName = order.CustomerName,
+            CategoryId = order.CategoryId,
+            Quantity = 20,
+            UnitPrice = 1.2,
+            UnitType = WeightUnit.Jin,
+            Timestamp = order.Timestamp
+        };
+
+        await scope.Service.UpdateOrderAsync(updatedOrder);
+
+        var category = (await scope.Service.GetCategoriesAsync()).Single(item => item.Id == categoryId);
+        var outboundRecord = (await scope.Service.GetRecentOutboundRecordsAsync(10)).Single(item => item.CategoryId == categoryId);
+        var customer = (await scope.Service.GetCustomersAsync()).Single(item => item.Name == "Mall");
+        var memories = await scope.Service.GetCustomerPriceMemoriesAsync(customer.Id);
+
+        Assert.Equal(10, category.Stock, 3);
+        Assert.Equal(2.4, category.SellPrice, 3);
+        Assert.Equal(20, outboundRecord.Quantity, 3);
+        Assert.Equal(WeightUnit.Jin, outboundRecord.UnitType);
+        Assert.Single(memories);
+        Assert.Equal(2.4, memories[0].Price, 3);
+    }
+
+    [Fact]
     public async Task AddInboundRecordAsync_UsesReadableOrderNameFormat()
     {
         await using var scope = new TestScope();
@@ -139,6 +228,121 @@ public sealed class LocalDatabaseServiceTests
             });
 
         Assert.Matches(new Regex(@"^入库_\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_Alice$"), confirmation.OrderNumber);
+    }
+
+    [Fact]
+    public async Task PrepareInboundOrderAsync_DoesNotPersistUntilConfirmed()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("PreviewOnly", WeightUnit.Kilogram, buyPrice: 4, sellPrice: 9);
+
+        var pendingOrder = await scope.Service.PrepareInboundOrderAsync(
+            "Alice",
+            new List<InboundOrderLineInputModel>
+            {
+                new()
+                {
+                    CategoryId = categoryId,
+                    Quantity = 6,
+                    UnitPrice = 4.5
+                }
+            });
+
+        var categoryBeforeConfirm = (await scope.Service.GetCategoriesAsync()).Single(item => item.Id == categoryId);
+        var ordersBeforeConfirm = await scope.Service.GetRecentOrdersAsync("inbound", 10);
+
+        Assert.Equal(0, categoryBeforeConfirm.Stock, 3);
+        Assert.DoesNotContain(ordersBeforeConfirm, order => order.OrderNumber == pendingOrder.OrderNumber);
+
+        var confirmation = await scope.Service.ConfirmInboundOrderAsync(pendingOrder);
+
+        var categoryAfterConfirm = (await scope.Service.GetCategoriesAsync()).Single(item => item.Id == categoryId);
+        var ordersAfterConfirm = await scope.Service.GetRecentOrdersAsync("inbound", 10);
+
+        Assert.Equal(pendingOrder.OrderNumber, confirmation.OrderNumber);
+        Assert.Equal(6, categoryAfterConfirm.Stock, 3);
+        Assert.Contains(ordersAfterConfirm, order => order.OrderNumber == pendingOrder.OrderNumber);
+    }
+
+    [Fact]
+    public async Task AddInboundRecordAsync_ConvertsTransactionUnitBackToCategoryUnit()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("BigWhite", WeightUnit.Kilogram, buyPrice: 1, sellPrice: 3);
+
+        await scope.Service.AddInboundRecordAsync(
+            categoryId,
+            quantity: 20,
+            unitPrice: 0.4,
+            customerName: "Alice",
+            inputUnitType: WeightUnit.Jin);
+
+        var category = (await scope.Service.GetCategoriesAsync()).Single(item => item.Id == categoryId);
+        var inboundRecord = (await scope.Service.GetRecentInboundRecordsAsync(10)).Single(item => item.CategoryId == categoryId);
+        var customer = (await scope.Service.GetCustomersAsync()).Single(item => item.Name == "Alice");
+        var memories = await scope.Service.GetCustomerPriceMemoriesAsync(customer.Id);
+
+        Assert.Equal(10, category.Stock, 3);
+        Assert.Equal(0.8, category.BuyPrice, 3);
+        Assert.Equal(20, inboundRecord.Quantity, 3);
+        Assert.Equal(WeightUnit.Jin, inboundRecord.UnitType);
+        Assert.Single(memories);
+        Assert.Equal(0.8, memories[0].Price, 3);
+    }
+
+    [Fact]
+    public async Task AddOutboundRecordAsync_ConvertsTransactionUnitBackToCategoryUnit()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("Coat", WeightUnit.Kilogram, buyPrice: 4, sellPrice: 8);
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 10, unitPrice: 4, customerName: "Supplier");
+
+        var confirmation = await scope.Service.AddOutboundRecordAsync(
+            categoryId,
+            quantity: 6,
+            unitPrice: 5,
+            customerName: "Mall",
+            inputUnitType: WeightUnit.Jin);
+
+        var category = (await scope.Service.GetCategoriesAsync()).Single(item => item.Id == categoryId);
+        var customer = (await scope.Service.GetCustomersAsync()).Single(item => item.Name == "Mall");
+        var memories = await scope.Service.GetCustomerPriceMemoriesAsync(customer.Id);
+
+        Assert.Equal(7, category.Stock, 3);
+        Assert.Equal(10, category.SellPrice, 3);
+        Assert.Equal(6, confirmation.Items.Single().Quantity, 3);
+        Assert.Equal(WeightUnit.Jin, confirmation.Items.Single().UnitType);
+        Assert.Single(memories);
+        Assert.Equal(10, memories[0].Price, 3);
+    }
+
+    [Fact]
+    public async Task MixedTransactionUnits_AreAggregatedIntoCategoryPriceBuckets()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("MixUnit", WeightUnit.Kilogram, buyPrice: 1, sellPrice: 2);
+
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 20, unitPrice: 0.4, customerName: "A", inputUnitType: WeightUnit.Jin);
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 5, unitPrice: 1.2, customerName: "B", inputUnitType: WeightUnit.Kilogram);
+
+        var priceBuckets = await scope.Service.GetCategoryPriceBucketsAsync(categoryId);
+        var stockItem = (await scope.Service.GetStockCategoryItemsAsync()).Single(item => item.Id == categoryId);
+
+        Assert.Equal(2, priceBuckets.Count);
+        Assert.Equal(0.8, priceBuckets[0].UnitPrice, 3);
+        Assert.Equal(10, priceBuckets[0].Quantity, 3);
+        Assert.Equal(1.2, priceBuckets[1].UnitPrice, 3);
+        Assert.Equal(5, priceBuckets[1].Quantity, 3);
+        Assert.Equal(15, stockItem.CurrentQuantity, 3);
+        Assert.Equal(14, stockItem.CalculatedInventoryCost, 3);
     }
 
     [Fact]
@@ -163,6 +367,93 @@ public sealed class LocalDatabaseServiceTests
         var confirmation = await scope.Service.AddOutboundRecordAsync(categoryId, quantity: 2, unitPrice: 9, customerName: null);
 
         Assert.Matches(new Regex(@"^出库_\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_匿名客户$"), confirmation.OrderNumber);
+    }
+
+    [Fact]
+    public async Task ForecastSummary_UsesNetProfitFormulaForProjectedIncome()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var coatId = await scope.CreateCategoryAsync("外套", WeightUnit.Kilogram, buyPrice: 10, sellPrice: 18);
+        var pantsId = await scope.CreateCategoryAsync("长裤", WeightUnit.Kilogram, buyPrice: 6, sellPrice: 5);
+
+        await scope.Service.AddInboundRecordAsync(coatId, quantity: 4, unitPrice: 10, customerName: null);
+        await scope.Service.AddInboundRecordAsync(pantsId, quantity: 3, unitPrice: 6, customerName: null);
+
+        var summary = await scope.Service.GetDashboardSummaryAsync();
+        var topCategories = await scope.Service.GetTopForecastCategoriesAsync(2);
+
+        Assert.Equal(87, summary.ProjectedSalesAmount, 3);
+        Assert.Equal(58, summary.TotalInventoryCost, 3);
+        Assert.Equal(29, summary.ProjectedNetProfit, 3);
+        Assert.Equal("外套", topCategories[0].Name);
+        Assert.Equal(32, topCategories[0].ForecastNetProfit, 3);
+        Assert.Equal("长裤", topCategories[1].Name);
+        Assert.Equal(-3, topCategories[1].ForecastNetProfit, 3);
+    }
+
+    [Fact]
+    public async Task MixedInboundPrices_AreTrackedAsSeparatePriceBuckets()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("Hoodie", WeightUnit.Kilogram, buyPrice: 5, sellPrice: 12);
+
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 10, unitPrice: 5, customerName: "Alice");
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 6, unitPrice: 7, customerName: "Bob");
+        await scope.Service.AddOutboundRecordAsync(categoryId, quantity: 8, unitPrice: 12, customerName: "Mall");
+
+        var priceBuckets = await scope.Service.GetCategoryPriceBucketsAsync(categoryId);
+        var stockItem = (await scope.Service.GetStockCategoryItemsAsync()).Single(item => item.Id == categoryId);
+        var summary = await scope.Service.GetDashboardSummaryAsync();
+        var topCategory = (await scope.Service.GetTopForecastCategoriesAsync(1)).Single();
+
+        Assert.Equal(2, priceBuckets.Count);
+        Assert.Equal(5, priceBuckets[0].UnitPrice, 3);
+        Assert.Equal(2, priceBuckets[0].Quantity, 3);
+        Assert.Equal(7, priceBuckets[1].UnitPrice, 3);
+        Assert.Equal(6, priceBuckets[1].Quantity, 3);
+
+        Assert.Equal(2, stockItem.PriceBucketCount);
+        Assert.Equal("¥5 - ¥7", stockItem.BuyPriceRangeText);
+        Assert.Contains("2档进价", stockItem.PriceBucketSummaryText);
+        Assert.Equal(52, stockItem.CalculatedInventoryCost, 3);
+        Assert.Equal(44, stockItem.CalculatedProjectedNetProfit, 3);
+
+        Assert.Equal(52, summary.TotalInventoryCost, 3);
+        Assert.Equal(96, summary.ProjectedSalesAmount, 3);
+        Assert.Equal(44, summary.ProjectedNetProfit, 3);
+        Assert.Equal("Hoodie", topCategory.Name);
+        Assert.Equal(44, topCategory.ForecastNetProfit, 3);
+    }
+
+    [Fact]
+    public async Task PriceBuckets_TrimOldestInboundLayersToMatchCurrentStock()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("BigWhite", WeightUnit.Kilogram, buyPrice: 0.8, sellPrice: 1.2);
+
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 23, unitPrice: 0.5, customerName: "A");
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 2, unitPrice: 1.0, customerName: "B");
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 100, unitPrice: 0.5, customerName: "C");
+        await scope.Service.AddInboundRecordAsync(categoryId, quantity: 50, unitPrice: 0.8, customerName: "D");
+
+        var category = (await scope.Service.GetCategoriesAsync()).Single(item => item.Id == categoryId);
+        category.Stock = 150;
+        await scope.Service.SaveCategoryAsync(category);
+
+        var priceBuckets = await scope.Service.GetCategoryPriceBucketsAsync(categoryId);
+
+        Assert.Equal(2, priceBuckets.Count);
+        Assert.Equal(0.5, priceBuckets[0].UnitPrice, 3);
+        Assert.Equal(100, priceBuckets[0].Quantity, 3);
+        Assert.Equal(0.8, priceBuckets[1].UnitPrice, 3);
+        Assert.Equal(50, priceBuckets[1].Quantity, 3);
+        Assert.DoesNotContain(priceBuckets, bucket => bucket.IsEstimated);
     }
 
     [Fact]

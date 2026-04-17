@@ -59,6 +59,7 @@ namespace ClothingRecycler.Desktop.Pages
             }
             catch (Exception ex)
             {
+                await App.GetService<AppLogger>().LogErrorAsync("打开手动调整弹窗失败。", ex);
                 await ShowMessageAsync("\u5E93\u5B58\u8C03\u6574\u5931\u8D25", ex.Message);
             }
         }
@@ -85,6 +86,7 @@ namespace ClothingRecycler.Desktop.Pages
             }
             catch (Exception ex)
             {
+                await App.GetService<AppLogger>().LogErrorAsync("打开盘点登记弹窗失败。", ex);
                 await ShowMessageAsync("\u76D8\u70B9\u4FDD\u5B58\u5931\u8D25", ex.Message);
             }
         }
@@ -117,6 +119,7 @@ namespace ClothingRecycler.Desktop.Pages
             }
             catch (Exception ex)
             {
+                await App.GetService<AppLogger>().LogErrorAsync("打开快速补货弹窗失败。", ex);
                 await ShowMessageAsync("\u5FEB\u901F\u8865\u8D27\u5931\u8D25", ex.Message);
             }
         }

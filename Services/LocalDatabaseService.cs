@@ -22,6 +22,34 @@ public sealed class LocalDatabaseService
 
 	private readonly record struct CsvRowData(int LineNumber, IReadOnlyDictionary<string, string> Values);
 
+	private sealed class InventoryPriceLot
+	{
+		public double UnitPrice { get; init; }
+
+		public double Quantity { get; set; }
+
+		public bool IsEstimated { get; init; }
+
+		public DateTimeOffset? LastInboundAt { get; init; }
+	}
+
+	private sealed class CategoryPricingSnapshot
+	{
+		public required IReadOnlyList<CategoryPriceBucketModel> PriceBuckets { get; init; }
+
+		public required string BuyPriceRangeText { get; init; }
+
+		public required string PriceBucketSummaryText { get; init; }
+
+		public required double InventoryCost { get; init; }
+
+		public required double ProjectedSalesAmount { get; init; }
+
+		public required double ProjectedNetProfit { get; init; }
+
+		public required int DistinctPriceCount { get; init; }
+	}
+
 	private const int BaseSchemaVersion = 1;
 
 	private const int CategoryArchiveSchemaVersion = 2;
@@ -293,6 +321,27 @@ public sealed class LocalDatabaseService
 		return await GetCategoriesAsync(includeArchived: false);
 	}
 
+	public async Task<IReadOnlyList<CategoryModel>> GetCategoriesWithPricingAsync(bool includeArchived = true)
+	{
+		List<CategoryModel> categories = (await GetCategoriesAsync(includeArchived)).ToList();
+		Dictionary<long, CategoryPricingSnapshot> pricingSnapshots = await BuildCategoryPricingSnapshotsAsync(categories);
+		foreach (CategoryModel category in categories)
+		{
+			pricingSnapshots.TryGetValue(category.Id, out CategoryPricingSnapshot? snapshot);
+			ApplyPricingSnapshot(category, snapshot);
+		}
+		return categories;
+	}
+
+	public async Task<IReadOnlyList<CategoryPriceBucketModel>> GetCategoryPriceBucketsAsync(long categoryId)
+	{
+		List<CategoryModel> categories = (await GetCategoriesAsync()).ToList();
+		Dictionary<long, CategoryPricingSnapshot> pricingSnapshots = await BuildCategoryPricingSnapshotsAsync(categories);
+		return pricingSnapshots.TryGetValue(categoryId, out CategoryPricingSnapshot? snapshot)
+			? snapshot.PriceBuckets
+			: Array.Empty<CategoryPriceBucketModel>();
+	}
+
 	public async Task<IReadOnlyList<CategoryManagementItemModel>> GetCategoryManagementItemsAsync()
 	{
 		List<CategoryManagementItemModel> items = new List<CategoryManagementItemModel>();
@@ -340,14 +389,12 @@ public sealed class LocalDatabaseService
 
 	public async Task<IReadOnlyList<StockCategoryItemModel>> GetStockCategoryItemsAsync()
 	{
-		List<StockCategoryItemModel> items = new List<StockCategoryItemModel>();
-		IReadOnlyList<StockCategoryItemModel> result;
+		List<StockCategoryItemModel> rawItems = new List<StockCategoryItemModel>();
 		await using (SqliteConnection connection = CreateConnection())
 		{
 			await connection.OpenAsync();
 			SqliteCommand sqliteCommand = connection.CreateCommand();
 			sqliteCommand.CommandText = "SELECT\n    c.id,\n    c.name,\n    c.buy_price,\n    c.sell_price,\n    c.stock,\n    c.stock_in_jin,\n    c.stock_in_pieces,\n    c.unit_type,\n    c.is_archived,\n    c.created_at,\n    c.updated_at,\n    (SELECT COUNT(*) FROM inbound_records WHERE category_id = c.id) AS inbound_record_count,\n    (SELECT COUNT(*) FROM outbound_records WHERE category_id = c.id) AS outbound_record_count,\n    (SELECT MAX(timestamp) FROM inbound_records WHERE category_id = c.id) AS last_inbound_at,\n    (SELECT MAX(timestamp) FROM outbound_records WHERE category_id = c.id) AS last_outbound_at\nFROM categories c\nORDER BY c.is_archived ASC, c.updated_at DESC, c.name COLLATE NOCASE;";
-			IReadOnlyList<StockCategoryItemModel> readOnlyList;
 			await using (SqliteDataReader reader = await sqliteCommand.ExecuteReaderAsync())
 			{
 				while (await reader.ReadAsync())
@@ -366,7 +413,7 @@ public sealed class LocalDatabaseService
 						CreatedAt = DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(9)),
 						UpdatedAt = DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(10))
 					};
-					items.Add(new StockCategoryItemModel
+					rawItems.Add(new StockCategoryItemModel
 					{
 						Category = category,
 						InboundRecordCount = reader.GetInt32(11),
@@ -375,11 +422,31 @@ public sealed class LocalDatabaseService
 						LastOutboundAt = (reader.IsDBNull(14) ? ((DateTimeOffset?)null) : new DateTimeOffset?(DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(14))))
 					});
 				}
-				readOnlyList = items;
 			}
-			result = readOnlyList;
 		}
-		return result;
+
+		Dictionary<long, CategoryPricingSnapshot> pricingSnapshots = await BuildCategoryPricingSnapshotsAsync(rawItems.Select((StockCategoryItemModel item) => item.Category).ToList());
+		return rawItems
+			.Select(delegate(StockCategoryItemModel item)
+			{
+				CategoryPricingSnapshot? snapshot = null;
+				pricingSnapshots.TryGetValue(item.Id, out snapshot);
+				ApplyPricingSnapshot(item.Category, snapshot);
+				return new StockCategoryItemModel
+				{
+					Category = item.Category,
+					CalculatedInventoryCost = snapshot?.InventoryCost ?? item.Category.InventoryCost,
+					CalculatedProjectedNetProfit = snapshot?.ProjectedNetProfit ?? item.Category.ForecastNetProfit,
+					PriceBucketCount = snapshot?.DistinctPriceCount ?? 0,
+					BuyPriceRangeText = snapshot?.BuyPriceRangeText ?? item.Category.BuyPriceText,
+					PriceBucketSummaryText = snapshot?.PriceBucketSummaryText ?? "暂无库存",
+					InboundRecordCount = item.InboundRecordCount,
+					OutboundRecordCount = item.OutboundRecordCount,
+					LastInboundAt = item.LastInboundAt,
+					LastOutboundAt = item.LastOutboundAt
+				};
+			})
+			.ToList();
 	}
 
 	public async Task<IReadOnlyList<StockAdjustmentRecordModel>> GetRecentStockAdjustmentsAsync(int count, long? categoryId = null)
@@ -1007,7 +1074,9 @@ public sealed class LocalDatabaseService
 		await using SqliteTransaction transaction = (SqliteTransaction)(await connection.BeginTransactionAsync());
 		OrderEditModel originalOrder = await GetOrderEditModelAsync(connection, transaction, order.OrderId);
 		CategoryModel newCategory = await GetCategoryAsync(connection, transaction, order.CategoryId);
-		double normalizedQuantity = NormalizeQuantity(order.Quantity, newCategory.UnitType);
+		WeightUnit transactionUnitType = ResolveInputUnit(newCategory.UnitType, order.UnitType);
+		double normalizedQuantity = NormalizeQuantity(order.Quantity, transactionUnitType);
+		double convertedQuantity = WeightUnitHelper.ConvertQuantity(normalizedQuantity, transactionUnitType, newCategory.UnitType);
 		if (normalizedQuantity <= 0.0)
 		{
             throw new InvalidOperationException("Order quantity must be greater than 0.");
@@ -1021,9 +1090,9 @@ public sealed class LocalDatabaseService
 			double num = GetAvailableStock(newCategory.Stock, newCategory.StockInJin, newCategory.StockInPieces, newCategory.UnitType);
 			if (newCategory.Id == originalOrder.CategoryId)
 			{
-				num += originalOrder.Quantity;
+				num += WeightUnitHelper.ConvertQuantity(originalOrder.Quantity, originalOrder.UnitType, newCategory.UnitType);
 			}
-			if (normalizedQuantity > num + 0.0001)
+			if (convertedQuantity > num + 0.0001)
 			{
                 throw new InvalidOperationException("Insufficient stock after modification.");
 			}
@@ -1072,7 +1141,7 @@ public sealed class LocalDatabaseService
 		sqliteCommand4.Parameters.AddWithValue("$weight", normalizedQuantity);
 		sqliteCommand4.Parameters.AddWithValue("$unitPrice", order.UnitPrice);
 		sqliteCommand4.Parameters.AddWithValue("$totalAmount", totalAmount);
-		sqliteCommand4.Parameters.AddWithValue("$unitType", newCategory.UnitType.ToString());
+		sqliteCommand4.Parameters.AddWithValue("$unitType", transactionUnitType.ToString());
 		sqliteCommand4.Parameters.AddWithValue("$timestamp", order.Timestamp.ToUnixTimeMilliseconds());
 		await sqliteCommand4.ExecuteNonQueryAsync();
 		await RebuildAllCategoryDataAsync(connection, transaction);
@@ -1291,7 +1360,7 @@ public sealed class LocalDatabaseService
 		await transaction.CommitAsync();
 	}
 
-	public async Task AddInboundRecordAsync(long categoryId, double quantity, double unitPrice, string? customerName)
+	public async Task AddInboundRecordAsync(long categoryId, double quantity, double unitPrice, string? customerName, WeightUnit? inputUnitType = null)
 	{
 		await AddInboundOrderAsync(customerName,
 		[
@@ -1299,50 +1368,85 @@ public sealed class LocalDatabaseService
 			{
 				CategoryId = categoryId,
 				Quantity = quantity,
-				UnitPrice = unitPrice
+				UnitPrice = unitPrice,
+				InputUnitType = inputUnitType
 			}
 		]);
 	}
 
-	public async Task<InboundOrderConfirmationModel> AddInboundOrderAsync(string? customerName, IReadOnlyList<InboundOrderLineInputModel> lines)
+	public async Task<PendingInboundOrderModel> PrepareInboundOrderAsync(string? customerName, IReadOnlyList<InboundOrderLineInputModel> lines)
 	{
 		ArgumentNullException.ThrowIfNull(lines);
-		List<InboundOrderLineInputModel> list = lines.Where((InboundOrderLineInputModel line) => line.Quantity > 0.0).ToList();
-		if (list.Count == 0)
+		List<InboundOrderLineInputModel> normalizedLines = lines
+			.Where((InboundOrderLineInputModel line) => line.Quantity > 0.0)
+			.ToList();
+		if (normalizedLines.Count == 0)
 		{
             throw new InvalidOperationException("Please fill at least one inbound quantity.");
 		}
-		if (list.Any((InboundOrderLineInputModel line) => line.UnitPrice <= 0.0))
+		if (normalizedLines.Any((InboundOrderLineInputModel line) => line.UnitPrice <= 0.0))
 		{
             throw new InvalidOperationException("All filled inbound lines must have a unit price greater than 0.");
+		}
+
+		string normalizedCustomerName = customerName?.Trim() ?? string.Empty;
+
+		await using SqliteConnection connection = CreateConnection();
+		await connection.OpenAsync();
+
+		List<OrderDetailItemModel> detailItems = await BuildInboundDetailItemsAsync(connection, normalizedLines);
+		if (detailItems.Count == 0)
+		{
+            throw new InvalidOperationException("Please fill at least one valid inbound line.");
+		}
+
+		DateTimeOffset timestamp = DateTimeOffset.Now;
+		string orderNumber = CreateOrderNumber("inbound", timestamp.ToUnixTimeMilliseconds(), normalizedCustomerName);
+
+		return new PendingInboundOrderModel
+		{
+			OrderNumber = orderNumber,
+			CustomerName = normalizedCustomerName,
+			Timestamp = timestamp,
+			Items = detailItems
+				.OrderBy((OrderDetailItemModel item) => item.CategoryName, StringComparer.CurrentCultureIgnoreCase)
+				.ToList()
+		};
+	}
+
+	public async Task<InboundOrderConfirmationModel> ConfirmInboundOrderAsync(PendingInboundOrderModel pendingOrder)
+	{
+		ArgumentNullException.ThrowIfNull(pendingOrder);
+
+		if (pendingOrder.Items.Count == 0)
+		{
+            throw new InvalidOperationException("Please fill at least one valid inbound line.");
 		}
 
 		await using SqliteConnection connection = CreateConnection();
 		await connection.OpenAsync();
 		await using SqliteTransaction transaction = (SqliteTransaction)(await connection.BeginTransactionAsync());
-		long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-		string normalizedCustomerName = customerName?.Trim() ?? string.Empty;
 
+		long now = pendingOrder.Timestamp.ToUnixTimeMilliseconds();
+		string normalizedCustomerName = pendingOrder.CustomerName.Trim();
 		long? customerId = null;
 		if (!string.IsNullOrWhiteSpace(normalizedCustomerName))
 		{
 			customerId = await GetOrCreateCustomerAsync(connection, transaction, normalizedCustomerName, now, markInbound: true, markOutbound: false);
 		}
 
-		List<OrderDetailItemModel> detailItems = new List<OrderDetailItemModel>(list.Count);
-		foreach (InboundOrderLineInputModel item in list)
+		foreach (OrderDetailItemModel detailItem in pendingOrder.Items)
 		{
 			SqliteCommand categoryCommand = connection.CreateCommand();
 			categoryCommand.Transaction = transaction;
 			categoryCommand.CommandText =
 				"""
-				SELECT name, stock, stock_in_jin, stock_in_pieces, unit_type
+				SELECT stock, stock_in_jin, stock_in_pieces, unit_type
 				FROM categories
 				WHERE id = $id;
 				""";
-			categoryCommand.Parameters.AddWithValue("$id", item.CategoryId);
+			categoryCommand.Parameters.AddWithValue("$id", detailItem.CategoryId);
 
-			string categoryName;
 			double stock;
 			double stockInJin;
 			int stockInPieces;
@@ -1354,31 +1458,26 @@ public sealed class LocalDatabaseService
                     throw new InvalidOperationException("Inbound category was not found.");
 				}
 
-				categoryName = reader.GetString(0);
-				stock = reader.GetDouble(1);
-				stockInJin = reader.GetDouble(2);
-				stockInPieces = reader.GetInt32(3);
-				unitType = ParseUnit(reader.GetString(4));
+				stock = reader.GetDouble(0);
+				stockInJin = reader.GetDouble(1);
+				stockInPieces = reader.GetInt32(2);
+				unitType = ParseUnit(reader.GetString(3));
 			}
 
-			double normalizedQuantity = NormalizeQuantity(item.Quantity, unitType);
-			if (normalizedQuantity <= 0.0)
-			{
-				continue;
-			}
+			WeightUnit inputUnitType = ResolveInputUnit(unitType, detailItem.UnitType);
+			double stockDelta = WeightUnitHelper.ConvertQuantity(detailItem.Quantity, inputUnitType, unitType);
+			double canonicalUnitPrice = WeightUnitHelper.ConvertUnitPrice(detailItem.UnitPrice, inputUnitType, unitType);
 
-			double normalizedUnitPrice = Math.Round(item.UnitPrice, 2);
-			double totalCost = Math.Round(normalizedQuantity * normalizedUnitPrice, 2);
 			switch (unitType)
 			{
 			case WeightUnit.Kilogram:
-				stock += normalizedQuantity;
+				stock += stockDelta;
 				break;
 			case WeightUnit.Jin:
-				stockInJin += normalizedQuantity;
+				stockInJin += stockDelta;
 				break;
 			case WeightUnit.Piece:
-				stockInPieces += (int)Math.Round(normalizedQuantity);
+				stockInPieces += (int)Math.Round(stockDelta);
 				break;
 			}
 
@@ -1395,8 +1494,8 @@ public sealed class LocalDatabaseService
 				    updated_at = $updatedAt
 				WHERE id = $id;
 				""";
-			updateCategoryCommand.Parameters.AddWithValue("$id", item.CategoryId);
-			updateCategoryCommand.Parameters.AddWithValue("$buyPrice", normalizedUnitPrice);
+			updateCategoryCommand.Parameters.AddWithValue("$id", detailItem.CategoryId);
+			updateCategoryCommand.Parameters.AddWithValue("$buyPrice", canonicalUnitPrice);
 			updateCategoryCommand.Parameters.AddWithValue("$stock", stock);
 			updateCategoryCommand.Parameters.AddWithValue("$stockInJin", stockInJin);
 			updateCategoryCommand.Parameters.AddWithValue("$stockInPieces", stockInPieces);
@@ -1405,33 +1504,24 @@ public sealed class LocalDatabaseService
 
 			if (customerId.HasValue)
 			{
-				await UpsertCustomerCategoryPriceAsync(connection, transaction, customerId.Value, item.CategoryId, normalizedUnitPrice, now);
+				await UpsertCustomerCategoryPriceAsync(connection, transaction, customerId.Value, detailItem.CategoryId, canonicalUnitPrice, now);
 			}
-
-			detailItems.Add(new OrderDetailItemModel
-			{
-				CategoryId = item.CategoryId,
-				CategoryName = categoryName,
-				Quantity = normalizedQuantity,
-				UnitType = unitType,
-				UnitPrice = normalizedUnitPrice,
-				LineAmount = totalCost
-			});
 		}
 
-		if (detailItems.Count == 0)
-		{
-            throw new InvalidOperationException("Please fill at least one valid inbound line.");
-		}
+		double totalQuantity = Math.Round(pendingOrder.Items.Sum((OrderDetailItemModel item) => item.Quantity), 2);
+		long orderId = await InsertOrderAsync(
+			connection,
+			transaction,
+			pendingOrder.OrderNumber,
+			"inbound",
+			customerId,
+			totalQuantity,
+			pendingOrder.TotalAmount,
+			pendingOrder.CategoryCount,
+			pendingOrder.ItemCount,
+			now);
 
-		string orderNumber = CreateOrderNumber("inbound", now, normalizedCustomerName);
-		double totalQuantity = Math.Round(detailItems.Sum((OrderDetailItemModel item) => item.Quantity), 2);
-		double totalAmount = Math.Round(detailItems.Sum((OrderDetailItemModel item) => item.LineAmount), 2);
-		int categoryCount = detailItems.Select((OrderDetailItemModel item) => item.CategoryId).Distinct().Count();
-		int itemCount = CalculateOrderItemCount(detailItems);
-		long orderId = await InsertOrderAsync(connection, transaction, orderNumber, "inbound", customerId, totalQuantity, totalAmount, categoryCount, itemCount, now);
-
-		foreach (OrderDetailItemModel detailItem in detailItems)
+		foreach (OrderDetailItemModel detailItem in pendingOrder.Items)
 		{
 			SqliteCommand insertRecordCommand = connection.CreateCommand();
 			insertRecordCommand.Transaction = transaction;
@@ -1455,19 +1545,15 @@ public sealed class LocalDatabaseService
 		}
 
 		await transaction.CommitAsync();
-		return new InboundOrderConfirmationModel
-		{
-			OrderId = orderId,
-			OrderNumber = orderNumber,
-			CustomerName = normalizedCustomerName,
-			Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(now),
-			CategoryCount = categoryCount,
-			ItemCount = itemCount,
-			TotalAmount = totalAmount,
-			Items = detailItems.OrderBy((OrderDetailItemModel item) => item.CategoryName, StringComparer.CurrentCultureIgnoreCase).ToList()
-		};
+		return pendingOrder.ToConfirmationModel(orderId);
 	}
-public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long categoryId, double quantity, double unitPrice, string? customerName)
+
+	public async Task<InboundOrderConfirmationModel> AddInboundOrderAsync(string? customerName, IReadOnlyList<InboundOrderLineInputModel> lines)
+	{
+		PendingInboundOrderModel pendingOrder = await PrepareInboundOrderAsync(customerName, lines);
+		return await ConfirmInboundOrderAsync(pendingOrder);
+	}
+public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long categoryId, double quantity, double unitPrice, string? customerName, WeightUnit? inputUnitType = null)
 	{
 		await using SqliteConnection connection = CreateConnection();
 		await connection.OpenAsync();
@@ -1493,13 +1579,15 @@ public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long ca
 			stockInPieces = reader.GetInt32(3);
 			unitType = ParseUnit(reader.GetString(4));
 		}
-		double normalizedQuantity = NormalizeQuantity(quantity, unitType);
+		WeightUnit transactionUnitType = ResolveInputUnit(unitType, inputUnitType);
+		double normalizedQuantity = NormalizeQuantity(quantity, transactionUnitType);
 		if (normalizedQuantity <= 0.0)
 		{
             throw new InvalidOperationException("Outbound quantity must be greater than 0.");
 		}
 		double availableStock = GetAvailableStock(stock, stockInJin, stockInPieces, unitType);
-		if (normalizedQuantity > availableStock + 0.0001)
+		double convertedQuantity = WeightUnitHelper.ConvertQuantity(normalizedQuantity, transactionUnitType, unitType);
+		if (convertedQuantity > availableStock + 0.0001)
 		{
             throw new InvalidOperationException("Outbound failed because stock is insufficient.");
 		}
@@ -1507,12 +1595,13 @@ public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long ca
 		double totalRevenue = Math.Round(normalizedQuantity * normalizedUnitPrice, 2);
 		long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 		string normalizedCustomerName = customerName?.Trim() ?? string.Empty;
-		DeductStock(normalizedQuantity, unitType, ref stock, ref stockInJin, ref stockInPieces);
+		DeductStock(convertedQuantity, unitType, ref stock, ref stockInJin, ref stockInPieces);
+		double canonicalUnitPrice = WeightUnitHelper.ConvertUnitPrice(normalizedUnitPrice, transactionUnitType, unitType);
 		SqliteCommand sqliteCommand2 = connection.CreateCommand();
 		sqliteCommand2.Transaction = transaction;
 		sqliteCommand2.CommandText = "UPDATE categories\nSET\n    sell_price = $sellPrice,\n    stock = $stock,\n    stock_in_jin = $stockInJin,\n    stock_in_pieces = $stockInPieces,\n    updated_at = $updatedAt\nWHERE id = $id;";
 		sqliteCommand2.Parameters.AddWithValue("$id", categoryId);
-		sqliteCommand2.Parameters.AddWithValue("$sellPrice", normalizedUnitPrice);
+		sqliteCommand2.Parameters.AddWithValue("$sellPrice", canonicalUnitPrice);
 		sqliteCommand2.Parameters.AddWithValue("$stock", stock);
 		sqliteCommand2.Parameters.AddWithValue("$stockInJin", stockInJin);
 		sqliteCommand2.Parameters.AddWithValue("$stockInPieces", stockInPieces);
@@ -1522,10 +1611,10 @@ public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long ca
 		if (!string.IsNullOrWhiteSpace(normalizedCustomerName))
 		{
 			customerId = await GetOrCreateCustomerAsync(connection, transaction, normalizedCustomerName, now, markInbound: false, markOutbound: true);
-			await UpsertCustomerCategoryPriceAsync(connection, transaction, customerId.Value, categoryId, normalizedUnitPrice, now);
+			await UpsertCustomerCategoryPriceAsync(connection, transaction, customerId.Value, categoryId, canonicalUnitPrice, now);
 		}
 		string orderNumber = CreateOrderNumber("outbound", now, normalizedCustomerName);
-		long num = await InsertOrderAsync(connection, transaction, orderNumber, "outbound", customerId, normalizedQuantity, totalRevenue, 1, ((unitType == WeightUnit.Piece) ? ((int)Math.Round(normalizedQuantity)) : 1), now);
+		long num = await InsertOrderAsync(connection, transaction, orderNumber, "outbound", customerId, normalizedQuantity, totalRevenue, 1, ((transactionUnitType == WeightUnit.Piece) ? ((int)Math.Round(normalizedQuantity)) : 1), now);
 		SqliteCommand sqliteCommand3 = connection.CreateCommand();
 		sqliteCommand3.Transaction = transaction;
 		sqliteCommand3.CommandText = "INSERT INTO outbound_records (\n    order_id, category_id, weight, unit_price, total_revenue, unit_type, timestamp\n)\nVALUES (\n    $orderId, $categoryId, $weight, $unitPrice, $totalRevenue, $unitType, $timestamp\n);";
@@ -1534,7 +1623,7 @@ public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long ca
 		sqliteCommand3.Parameters.AddWithValue("$weight", normalizedQuantity);
 		sqliteCommand3.Parameters.AddWithValue("$unitPrice", normalizedUnitPrice);
 		sqliteCommand3.Parameters.AddWithValue("$totalRevenue", totalRevenue);
-		sqliteCommand3.Parameters.AddWithValue("$unitType", unitType.ToString());
+		sqliteCommand3.Parameters.AddWithValue("$unitType", transactionUnitType.ToString());
 		sqliteCommand3.Parameters.AddWithValue("$timestamp", now);
 		await sqliteCommand3.ExecuteNonQueryAsync();
 		await transaction.CommitAsync();
@@ -1546,19 +1635,19 @@ public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long ca
 			CustomerName = normalizedCustomerName,
 			Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(now),
 			CategoryCount = 1,
-			ItemCount = unitType == WeightUnit.Piece ? (int)Math.Round(normalizedQuantity) : 1,
+			ItemCount = transactionUnitType == WeightUnit.Piece ? (int)Math.Round(normalizedQuantity) : 1,
 			TotalAmount = totalRevenue,
 			Items =
 			[
 				new OrderDetailItemModel
 				{
 					CategoryId = categoryId,
-					CategoryName = categoryName,
-					Quantity = normalizedQuantity,
-					UnitType = unitType,
-					UnitPrice = normalizedUnitPrice,
-					LineAmount = totalRevenue
-				}
+				CategoryName = categoryName,
+				Quantity = normalizedQuantity,
+				UnitType = transactionUnitType,
+				UnitPrice = normalizedUnitPrice,
+				LineAmount = totalRevenue
+			}
 			]
 		};
 	}
@@ -1603,7 +1692,7 @@ public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long ca
 
 	public async Task<DashboardSummary> GetDashboardSummaryAsync()
 	{
-		IReadOnlyList<CategoryModel> categories = await GetCategoriesAsync();
+		IReadOnlyList<CategoryModel> categories = await GetCategoriesWithPricingAsync();
 		(long Start, long End) todayRange = GetTodayRange();
 		DashboardSummary result;
 		await using (SqliteConnection connection = CreateConnection())
@@ -1616,7 +1705,8 @@ public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long ca
 				CategoryCount = categories.Count,
 				LowStockCount = categories.Count((CategoryModel category) => category.IsLowStock),
 				TotalInventoryCost = Math.Round(categories.Sum((CategoryModel category) => category.InventoryCost), 2),
-				ForecastRevenue = Math.Round(categories.Sum((CategoryModel category) => category.ForecastRevenue), 2),
+				ProjectedSalesAmount = Math.Round(categories.Sum((CategoryModel category) => category.ForecastSalesAmount), 2),
+				ProjectedNetProfit = Math.Round(categories.Sum((CategoryModel category) => category.ForecastNetProfit), 2),
 				TodayInboundAmount = todayInboundAmount,
 				TodayOutboundAmount = todayOutboundAmount
 			};
@@ -1716,10 +1806,202 @@ public async Task<OutboundOrderConfirmationModel> AddOutboundRecordAsync(long ca
 
 	public async Task<IReadOnlyList<CategoryModel>> GetTopForecastCategoriesAsync(int count)
 	{
-		return (from category in await GetCategoriesAsync()
-			orderby category.ForecastRevenue descending, category.Name
+		return (from category in await GetCategoriesWithPricingAsync()
+			orderby category.ForecastNetProfit descending, category.Name
 			select category).Take(count).ToList();
 	}
+
+	private async Task<Dictionary<long, CategoryPricingSnapshot>> BuildCategoryPricingSnapshotsAsync(IReadOnlyList<CategoryModel> categories)
+	{
+		Dictionary<long, CategoryPricingSnapshot> snapshots = new Dictionary<long, CategoryPricingSnapshot>();
+		if (categories.Count == 0)
+		{
+			return snapshots;
+		}
+
+		Dictionary<long, CategoryModel> categoriesById = categories.ToDictionary((CategoryModel category) => category.Id);
+		Dictionary<long, List<InventoryPriceLot>> lotsByCategory = categories.ToDictionary((CategoryModel category) => category.Id, (CategoryModel _) => new List<InventoryPriceLot>());
+
+		await using (SqliteConnection connection = CreateConnection())
+		{
+			await connection.OpenAsync();
+
+			SqliteCommand inboundCommand = connection.CreateCommand();
+			inboundCommand.CommandText = "SELECT category_id, weight, unit_price, unit_type, timestamp\nFROM inbound_records\nORDER BY category_id ASC, timestamp ASC, id ASC;";
+			await using (SqliteDataReader reader = await inboundCommand.ExecuteReaderAsync())
+			{
+				while (await reader.ReadAsync())
+				{
+					long categoryId = reader.GetInt64(0);
+					if (!categoriesById.TryGetValue(categoryId, out CategoryModel? category))
+					{
+						continue;
+					}
+
+					WeightUnit recordUnitType = ParseUnit(reader.GetString(3));
+					if (!WeightUnitHelper.SupportsInputUnit(category.UnitType, recordUnitType))
+					{
+						continue;
+					}
+
+					double quantity = WeightUnitHelper.ConvertQuantity(reader.GetDouble(1), recordUnitType, category.UnitType);
+					if (quantity <= 0.0001)
+					{
+						continue;
+					}
+
+					lotsByCategory[categoryId].Add(new InventoryPriceLot
+					{
+						UnitPrice = WeightUnitHelper.ConvertUnitPrice(reader.GetDouble(2), recordUnitType, category.UnitType),
+						Quantity = quantity,
+						IsEstimated = false,
+						LastInboundAt = DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(4))
+					});
+				}
+			}
+		}
+
+		foreach (CategoryModel category in categories)
+		{
+			List<InventoryPriceLot> lots = lotsByCategory[category.Id];
+			ReconcilePriceLots(category, lots);
+			List<CategoryPriceBucketModel> priceBuckets = BuildPriceBuckets(category, lots);
+			List<double> distinctPrices = priceBuckets
+				.Select((CategoryPriceBucketModel bucket) => bucket.UnitPrice)
+				.Distinct()
+				.OrderBy((double price) => price)
+				.ToList();
+			double inventoryCost = Math.Round(priceBuckets.Sum((CategoryPriceBucketModel bucket) => bucket.TotalCost), 2);
+			double projectedSalesAmount = Math.Round(priceBuckets.Sum((CategoryPriceBucketModel bucket) => bucket.Quantity * category.SellPrice), 2);
+			double projectedNetProfit = Math.Round(priceBuckets.Sum((CategoryPriceBucketModel bucket) => bucket.ProjectedNetProfit), 2);
+			string buyPriceRangeText = BuildBuyPriceRangeText(distinctPrices, category.BuyPrice);
+
+			snapshots[category.Id] = new CategoryPricingSnapshot
+			{
+				PriceBuckets = priceBuckets,
+				BuyPriceRangeText = buyPriceRangeText,
+				PriceBucketSummaryText = BuildPriceBucketSummaryText(distinctPrices.Count, buyPriceRangeText, priceBuckets.Any((CategoryPriceBucketModel bucket) => bucket.IsEstimated)),
+				InventoryCost = inventoryCost,
+				ProjectedSalesAmount = projectedSalesAmount,
+				ProjectedNetProfit = projectedNetProfit,
+				DistinctPriceCount = distinctPrices.Count
+			};
+		}
+
+		return snapshots;
+	}
+
+	private static void ApplyPricingSnapshot(CategoryModel category, CategoryPricingSnapshot? snapshot)
+	{
+		category.InventoryCostOverride = snapshot?.InventoryCost;
+		category.ForecastSalesAmountOverride = snapshot?.ProjectedSalesAmount;
+		category.ForecastNetProfitOverride = snapshot?.ProjectedNetProfit;
+		category.PriceBucketCount = snapshot?.DistinctPriceCount ?? 0;
+	}
+
+	private static void DeductPriceLots(List<InventoryPriceLot> lots, double quantity, WeightUnit unitType)
+	{
+		double remainingQuantity = NormalizeQuantity(quantity, unitType);
+		for (int index = 0; index < lots.Count && remainingQuantity > 0.0001; index++)
+		{
+			InventoryPriceLot lot = lots[index];
+			if (lot.Quantity <= 0.0001)
+			{
+				continue;
+			}
+
+			double deductedQuantity = Math.Min(lot.Quantity, remainingQuantity);
+			lot.Quantity = NormalizeQuantity(lot.Quantity - deductedQuantity, unitType);
+			remainingQuantity = NormalizeQuantity(remainingQuantity - deductedQuantity, unitType);
+		}
+
+		lots.RemoveAll((InventoryPriceLot lot) => lot.Quantity <= 0.0001);
+	}
+
+	private static void ReconcilePriceLots(CategoryModel category, List<InventoryPriceLot> lots)
+	{
+		double actualQuantity = NormalizeQuantity(category.DisplayStock, category.UnitType);
+		double derivedQuantity = NormalizeQuantity(lots.Sum((InventoryPriceLot lot) => lot.Quantity), category.UnitType);
+
+		if (derivedQuantity > actualQuantity + 0.0001)
+		{
+			DeductPriceLots(lots, derivedQuantity - actualQuantity, category.UnitType);
+			return;
+		}
+
+		if (actualQuantity > derivedQuantity + 0.0001)
+		{
+			lots.Add(new InventoryPriceLot
+			{
+				UnitPrice = Math.Round(category.BuyPrice, 2),
+				Quantity = NormalizeQuantity(actualQuantity - derivedQuantity, category.UnitType),
+				IsEstimated = true,
+				LastInboundAt = null
+			});
+		}
+	}
+
+	private static List<CategoryPriceBucketModel> BuildPriceBuckets(CategoryModel category, List<InventoryPriceLot> lots)
+	{
+		return lots
+			.Where((InventoryPriceLot lot) => lot.Quantity > 0.0001)
+			.GroupBy((InventoryPriceLot lot) => new { lot.UnitPrice, lot.IsEstimated })
+			.Select(group =>
+			{
+				DateTimeOffset? lastInboundAt = group
+					.Where((InventoryPriceLot lot) => lot.LastInboundAt.HasValue)
+					.Select((InventoryPriceLot lot) => lot.LastInboundAt!.Value)
+					.Cast<DateTimeOffset?>()
+					.DefaultIfEmpty(null)
+					.Max();
+
+				return new CategoryPriceBucketModel
+				{
+					CategoryId = category.Id,
+					CategoryName = category.Name,
+					UnitType = category.UnitType,
+					UnitPrice = group.Key.UnitPrice,
+					Quantity = NormalizeQuantity(group.Sum((InventoryPriceLot lot) => lot.Quantity), category.UnitType),
+					SellPrice = category.SellPrice,
+					IsEstimated = group.Key.IsEstimated,
+					LastInboundAt = lastInboundAt
+				};
+			})
+			.Where((CategoryPriceBucketModel bucket) => bucket.Quantity > 0.0001)
+			.OrderBy((CategoryPriceBucketModel bucket) => bucket.UnitPrice)
+			.ThenBy((CategoryPriceBucketModel bucket) => bucket.IsEstimated)
+			.ToList();
+	}
+
+	private static string BuildBuyPriceRangeText(IReadOnlyList<double> distinctPrices, double fallbackPrice)
+	{
+		if (distinctPrices.Count == 0)
+		{
+			return CurrencyText(fallbackPrice);
+		}
+
+		if (distinctPrices.Count == 1)
+		{
+			return CurrencyText(distinctPrices[0]);
+		}
+
+		return $"{CurrencyText(distinctPrices[0])} - {CurrencyText(distinctPrices[^1])}";
+	}
+
+	private static string BuildPriceBucketSummaryText(int distinctPriceCount, string buyPriceRangeText, bool hasEstimatedBucket)
+	{
+		if (distinctPriceCount <= 0)
+		{
+			return "暂无库存";
+		}
+
+		string prefix = distinctPriceCount == 1 ? "单一进价" : $"{distinctPriceCount}档进价";
+		return hasEstimatedBucket
+			? $"{prefix} · {buyPriceRangeText} · 含估算库存"
+			: $"{prefix} · {buyPriceRangeText}";
+	}
+
+	private static string CurrencyText(double value) => $"¥{value:0.##}";
 
 	private SqliteConnection CreateConnection()
 	{
@@ -2249,12 +2531,18 @@ private static async Task<IReadOnlyList<ConsistencyCheckIssueModel>> CollectCust
 
 	private static double NormalizeQuantity(double quantity, WeightUnit unitType)
 	{
-		double num = Math.Max(0.0, quantity);
-		if (unitType != WeightUnit.Piece)
+		return WeightUnitHelper.NormalizeQuantity(quantity, unitType);
+	}
+
+	private static WeightUnit ResolveInputUnit(WeightUnit categoryUnitType, WeightUnit? inputUnitType)
+	{
+		WeightUnit resolvedUnitType = inputUnitType ?? categoryUnitType;
+		if (!WeightUnitHelper.SupportsInputUnit(categoryUnitType, resolvedUnitType))
 		{
-			return Math.Round(num, 2);
+			throw new InvalidOperationException($"分类默认单位为 {WeightUnitHelper.GetDisplayName(categoryUnitType)}，本次录单不能使用 {WeightUnitHelper.GetDisplayName(resolvedUnitType)}。");
 		}
-		return Math.Round(num);
+
+		return resolvedUnitType;
 	}
 
 	private static double GetAvailableStock(double stock, double stockInJin, int stockInPieces, WeightUnit unitType)
@@ -2359,32 +2647,55 @@ private static async Task<IReadOnlyList<ConsistencyCheckIssueModel>> CollectCust
 
 	private async Task<IReadOnlyList<CategoryAnalyticsItemModel>> GetTopCategoryAnalyticsAsync(string table, string amountColumn, int count)
 	{
-		List<CategoryAnalyticsItemModel> categories = new List<CategoryAnalyticsItemModel>();
-		IReadOnlyList<CategoryAnalyticsItemModel> result;
-		await using (SqliteConnection connection = CreateConnection())
+		await using SqliteConnection connection = CreateConnection();
+		await connection.OpenAsync();
+		SqliteCommand sqliteCommand = connection.CreateCommand();
+		sqliteCommand.CommandText = $"SELECT c.id, c.name, c.unit_type, r.weight, r.unit_type, r.{amountColumn}\nFROM {table} r\nINNER JOIN categories c ON c.id = r.category_id;";
+
+		var aggregates = new Dictionary<long, CategoryAnalyticsItemModel>();
+		await using (SqliteDataReader reader = await sqliteCommand.ExecuteReaderAsync())
 		{
-			await connection.OpenAsync();
-			SqliteCommand sqliteCommand = connection.CreateCommand();
-			sqliteCommand.CommandText = $"SELECT\n    c.name,\n    IFNULL(SUM(r.weight), 0) AS quantity,\n    r.unit_type,\n    IFNULL(SUM(r.{amountColumn}), 0) AS amount\nFROM {table} r\nINNER JOIN categories c ON c.id = r.category_id\nGROUP BY r.category_id, c.name, r.unit_type\nORDER BY amount DESC, c.name COLLATE NOCASE\nLIMIT $count;";
-			sqliteCommand.Parameters.AddWithValue("$count", count);
-			IReadOnlyList<CategoryAnalyticsItemModel> readOnlyList;
-			await using (SqliteDataReader reader = await sqliteCommand.ExecuteReaderAsync())
+			while (await reader.ReadAsync())
 			{
-				while (await reader.ReadAsync())
+				long categoryId = reader.GetInt64(0);
+				string categoryName = reader.GetString(1);
+				WeightUnit categoryUnitType = ParseUnit(reader.GetString(2));
+				WeightUnit recordUnitType = ParseUnit(reader.GetString(4));
+				if (!WeightUnitHelper.SupportsInputUnit(categoryUnitType, recordUnitType))
 				{
-					categories.Add(new CategoryAnalyticsItemModel
-					{
-						CategoryName = reader.GetString(0),
-						Quantity = reader.GetDouble(1),
-						UnitType = ParseUnit(reader.GetString(2)),
-						Amount = reader.GetDouble(3)
-					});
+					continue;
 				}
-				readOnlyList = categories;
+
+				double quantity = WeightUnitHelper.ConvertQuantity(reader.GetDouble(3), recordUnitType, categoryUnitType);
+				double amount = reader.GetDouble(5);
+
+				if (!aggregates.TryGetValue(categoryId, out var existing))
+				{
+					aggregates[categoryId] = new CategoryAnalyticsItemModel
+					{
+						CategoryName = categoryName,
+						Quantity = quantity,
+						Amount = amount,
+						UnitType = categoryUnitType
+					};
+					continue;
+				}
+
+				aggregates[categoryId] = new CategoryAnalyticsItemModel
+				{
+					CategoryName = existing.CategoryName,
+					Quantity = Math.Round(existing.Quantity + quantity, categoryUnitType == WeightUnit.Piece ? 0 : 2),
+					Amount = Math.Round(existing.Amount + amount, 2),
+					UnitType = existing.UnitType
+				};
 			}
-			result = readOnlyList;
 		}
-		return result;
+
+		return aggregates.Values
+			.OrderByDescending(item => item.Amount)
+			.ThenBy(item => item.CategoryName, StringComparer.CurrentCultureIgnoreCase)
+			.Take(count)
+			.ToList();
 	}
 
 	private static async Task EnsureCustomerNameAvailableAsync(SqliteConnection connection, SqliteTransaction transaction, long customerId, string customerName)
@@ -2436,7 +2747,7 @@ private static async Task<IReadOnlyList<ConsistencyCheckIssueModel>> CollectCust
 		Dictionary<long, (double Price, long UpdatedAt)> latestPrices = new Dictionary<long, (double, long)>();
 		SqliteCommand sqliteCommand2 = connection.CreateCommand();
 		sqliteCommand2.Transaction = transaction;
-		sqliteCommand2.CommandText = "SELECT category_id, price, updated_at\nFROM (\n    SELECT ir.category_id, ir.unit_price AS price, ir.timestamp AS updated_at, ir.id AS record_id\n    FROM inbound_records ir\n    INNER JOIN orders o ON o.id = ir.order_id\n    WHERE o.customer_id = $customerId\n\n    UNION ALL\n\n    SELECT orr.category_id, orr.unit_price AS price, orr.timestamp AS updated_at, orr.id AS record_id\n    FROM outbound_records orr\n    INNER JOIN orders o ON o.id = orr.order_id\n    WHERE o.customer_id = $customerId\n)\nORDER BY updated_at DESC, record_id DESC;";
+		sqliteCommand2.CommandText = "SELECT category_id, price, updated_at, record_unit_type, category_unit_type\nFROM (\n    SELECT ir.category_id, ir.unit_price AS price, ir.timestamp AS updated_at, ir.id AS record_id, ir.unit_type AS record_unit_type, c.unit_type AS category_unit_type\n    FROM inbound_records ir\n    INNER JOIN orders o ON o.id = ir.order_id\n    INNER JOIN categories c ON c.id = ir.category_id\n    WHERE o.customer_id = $customerId\n\n    UNION ALL\n\n    SELECT orr.category_id, orr.unit_price AS price, orr.timestamp AS updated_at, orr.id AS record_id, orr.unit_type AS record_unit_type, c.unit_type AS category_unit_type\n    FROM outbound_records orr\n    INNER JOIN orders o ON o.id = orr.order_id\n    INNER JOIN categories c ON c.id = orr.category_id\n    WHERE o.customer_id = $customerId\n)\nORDER BY updated_at DESC, record_id DESC;";
 		sqliteCommand2.Parameters.AddWithValue("$customerId", customerId);
 		await using (SqliteDataReader reader = await sqliteCommand2.ExecuteReaderAsync())
 		{
@@ -2445,7 +2756,12 @@ private static async Task<IReadOnlyList<ConsistencyCheckIssueModel>> CollectCust
 				long @int = reader.GetInt64(0);
 				if (!latestPrices.ContainsKey(@int))
 				{
-					latestPrices[@int] = (reader.GetDouble(1), reader.GetInt64(2));
+					WeightUnit recordUnitType = ParseUnit(reader.GetString(3));
+					WeightUnit categoryUnitType = ParseUnit(reader.GetString(4));
+					double canonicalPrice = WeightUnitHelper.SupportsInputUnit(categoryUnitType, recordUnitType)
+						? WeightUnitHelper.ConvertUnitPrice(reader.GetDouble(1), recordUnitType, categoryUnitType)
+						: Math.Round(reader.GetDouble(1), 2);
+					latestPrices[@int] = (canonicalPrice, reader.GetInt64(2));
 				}
 			}
 		}
@@ -2464,37 +2780,104 @@ private static async Task<IReadOnlyList<ConsistencyCheckIssueModel>> CollectCust
 
 	private static async Task RebuildAllCategoryDataAsync(SqliteConnection connection, SqliteTransaction transaction)
 	{
-		SqliteCommand sqliteCommand = connection.CreateCommand();
-		sqliteCommand.Transaction = transaction;
-		sqliteCommand.CommandText = "SELECT\n    c.id,\n    c.buy_price,\n    c.sell_price,\n    IFNULL((SELECT SUM(weight) FROM inbound_records WHERE category_id = c.id AND unit_type = 'Kilogram'), 0),\n    IFNULL((SELECT SUM(weight) FROM inbound_records WHERE category_id = c.id AND unit_type = 'Jin'), 0),\n    IFNULL((SELECT SUM(weight) FROM inbound_records WHERE category_id = c.id AND unit_type = 'Piece'), 0),\n    IFNULL((SELECT SUM(weight) FROM outbound_records WHERE category_id = c.id AND unit_type = 'Kilogram'), 0),\n    IFNULL((SELECT SUM(weight) FROM outbound_records WHERE category_id = c.id AND unit_type = 'Jin'), 0),\n    IFNULL((SELECT SUM(weight) FROM outbound_records WHERE category_id = c.id AND unit_type = 'Piece'), 0),\n    (SELECT unit_price FROM inbound_records WHERE category_id = c.id ORDER BY timestamp DESC, id DESC LIMIT 1),\n    (SELECT unit_price FROM outbound_records WHERE category_id = c.id ORDER BY timestamp DESC, id DESC LIMIT 1)\nFROM categories c;";
-		List<(long CategoryId, double BuyPrice, double SellPrice, double Stock, double StockInJin, int StockInPieces)> snapshots = new List<(long, double, double, double, double, int)>();
-		await using (SqliteDataReader reader = await sqliteCommand.ExecuteReaderAsync())
+		SqliteCommand categoryCommand = connection.CreateCommand();
+		categoryCommand.Transaction = transaction;
+		categoryCommand.CommandText = "SELECT id, buy_price, sell_price, unit_type FROM categories;";
+
+		var categories = new List<(long CategoryId, double BuyPrice, double SellPrice, WeightUnit UnitType)>();
+		await using (SqliteDataReader reader = await categoryCommand.ExecuteReaderAsync())
 		{
 			while (await reader.ReadAsync())
 			{
-				double num = reader.GetDouble(3);
-				double num2 = reader.GetDouble(4);
-				double num3 = reader.GetDouble(5);
-				double num4 = reader.GetDouble(6);
-				double num5 = reader.GetDouble(7);
-				double num6 = reader.GetDouble(8);
-				snapshots.Add((reader.GetInt64(0), reader.IsDBNull(9) ? reader.GetDouble(1) : reader.GetDouble(9), reader.IsDBNull(10) ? reader.GetDouble(2) : reader.GetDouble(10), Math.Max(0.0, Math.Round(num - num4, 2)), Math.Max(0.0, Math.Round(num2 - num5, 2)), Math.Max(0, (int)Math.Round(num3 - num6))));
+				categories.Add((
+					reader.GetInt64(0),
+					reader.GetDouble(1),
+					reader.GetDouble(2),
+					ParseUnit(reader.GetString(3))));
 			}
 		}
+
 		long updatedAt = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-		foreach (var item in snapshots)
+		foreach (var category in categories)
 		{
-			SqliteCommand sqliteCommand2 = connection.CreateCommand();
-			sqliteCommand2.Transaction = transaction;
-			sqliteCommand2.CommandText = "UPDATE categories\nSET\n    buy_price = $buyPrice,\n    sell_price = $sellPrice,\n    stock = $stock,\n    stock_in_jin = $stockInJin,\n    stock_in_pieces = $stockInPieces,\n    updated_at = $updatedAt\nWHERE id = $id;";
-			sqliteCommand2.Parameters.AddWithValue("$id", item.CategoryId);
-			sqliteCommand2.Parameters.AddWithValue("$buyPrice", item.BuyPrice);
-			sqliteCommand2.Parameters.AddWithValue("$sellPrice", item.SellPrice);
-			sqliteCommand2.Parameters.AddWithValue("$stock", item.Stock);
-			sqliteCommand2.Parameters.AddWithValue("$stockInJin", item.StockInJin);
-			sqliteCommand2.Parameters.AddWithValue("$stockInPieces", item.StockInPieces);
-			sqliteCommand2.Parameters.AddWithValue("$updatedAt", updatedAt);
-			await sqliteCommand2.ExecuteNonQueryAsync();
+			double inboundQuantity = 0;
+			double outboundQuantity = 0;
+			double canonicalBuyPrice = category.BuyPrice;
+			double canonicalSellPrice = category.SellPrice;
+			long latestInboundTimestamp = long.MinValue;
+			long latestOutboundTimestamp = long.MinValue;
+			long latestInboundId = long.MinValue;
+			long latestOutboundId = long.MinValue;
+
+			SqliteCommand inboundCommand = connection.CreateCommand();
+			inboundCommand.Transaction = transaction;
+			inboundCommand.CommandText = "SELECT id, weight, unit_price, unit_type, timestamp FROM inbound_records WHERE category_id = $categoryId ORDER BY timestamp ASC, id ASC;";
+			inboundCommand.Parameters.AddWithValue("$categoryId", category.CategoryId);
+			await using (SqliteDataReader inboundReader = await inboundCommand.ExecuteReaderAsync())
+			{
+				while (await inboundReader.ReadAsync())
+				{
+					long recordId = inboundReader.GetInt64(0);
+					WeightUnit recordUnitType = ParseUnit(inboundReader.GetString(3));
+					if (!WeightUnitHelper.SupportsInputUnit(category.UnitType, recordUnitType))
+					{
+						continue;
+					}
+
+					inboundQuantity += WeightUnitHelper.ConvertQuantity(inboundReader.GetDouble(1), recordUnitType, category.UnitType);
+					long timestamp = inboundReader.GetInt64(4);
+					if (timestamp > latestInboundTimestamp || (timestamp == latestInboundTimestamp && recordId > latestInboundId))
+					{
+						latestInboundTimestamp = timestamp;
+						latestInboundId = recordId;
+						canonicalBuyPrice = WeightUnitHelper.ConvertUnitPrice(inboundReader.GetDouble(2), recordUnitType, category.UnitType);
+					}
+				}
+			}
+
+			SqliteCommand outboundCommand = connection.CreateCommand();
+			outboundCommand.Transaction = transaction;
+			outboundCommand.CommandText = "SELECT id, weight, unit_price, unit_type, timestamp FROM outbound_records WHERE category_id = $categoryId ORDER BY timestamp ASC, id ASC;";
+			outboundCommand.Parameters.AddWithValue("$categoryId", category.CategoryId);
+			await using (SqliteDataReader outboundReader = await outboundCommand.ExecuteReaderAsync())
+			{
+				while (await outboundReader.ReadAsync())
+				{
+					long recordId = outboundReader.GetInt64(0);
+					WeightUnit recordUnitType = ParseUnit(outboundReader.GetString(3));
+					if (!WeightUnitHelper.SupportsInputUnit(category.UnitType, recordUnitType))
+					{
+						continue;
+					}
+
+					outboundQuantity += WeightUnitHelper.ConvertQuantity(outboundReader.GetDouble(1), recordUnitType, category.UnitType);
+					long timestamp = outboundReader.GetInt64(4);
+					if (timestamp > latestOutboundTimestamp || (timestamp == latestOutboundTimestamp && recordId > latestOutboundId))
+					{
+						latestOutboundTimestamp = timestamp;
+						latestOutboundId = recordId;
+						canonicalSellPrice = WeightUnitHelper.ConvertUnitPrice(outboundReader.GetDouble(2), recordUnitType, category.UnitType);
+					}
+				}
+			}
+
+			double remainingQuantity = Math.Max(0, WeightUnitHelper.NormalizeQuantity(inboundQuantity - outboundQuantity, category.UnitType));
+			double stock = 0;
+			double stockInJin = 0;
+			int stockInPieces = 0;
+			ApplyStockQuantity(remainingQuantity, category.UnitType, ref stock, ref stockInJin, ref stockInPieces);
+
+			SqliteCommand updateCommand = connection.CreateCommand();
+			updateCommand.Transaction = transaction;
+			updateCommand.CommandText = "UPDATE categories\nSET\n    buy_price = $buyPrice,\n    sell_price = $sellPrice,\n    stock = $stock,\n    stock_in_jin = $stockInJin,\n    stock_in_pieces = $stockInPieces,\n    updated_at = $updatedAt\nWHERE id = $id;";
+			updateCommand.Parameters.AddWithValue("$id", category.CategoryId);
+			updateCommand.Parameters.AddWithValue("$buyPrice", canonicalBuyPrice);
+			updateCommand.Parameters.AddWithValue("$sellPrice", canonicalSellPrice);
+			updateCommand.Parameters.AddWithValue("$stock", stock);
+			updateCommand.Parameters.AddWithValue("$stockInJin", stockInJin);
+			updateCommand.Parameters.AddWithValue("$stockInPieces", stockInPieces);
+			updateCommand.Parameters.AddWithValue("$updatedAt", updatedAt);
+			await updateCommand.ExecuteNonQueryAsync();
 		}
 	}
 
@@ -2566,6 +2949,55 @@ private static async Task<IReadOnlyList<ConsistencyCheckIssueModel>> CollectCust
 			result = records[0];
 		}
 		return result;
+	}
+
+	private static async Task<List<OrderDetailItemModel>> BuildInboundDetailItemsAsync(SqliteConnection connection, IReadOnlyList<InboundOrderLineInputModel> lines)
+	{
+		List<OrderDetailItemModel> detailItems = new List<OrderDetailItemModel>(lines.Count);
+		foreach (InboundOrderLineInputModel item in lines)
+		{
+			SqliteCommand categoryCommand = connection.CreateCommand();
+			categoryCommand.CommandText =
+				"""
+				SELECT name, unit_type
+				FROM categories
+				WHERE id = $id;
+				""";
+			categoryCommand.Parameters.AddWithValue("$id", item.CategoryId);
+
+			string categoryName;
+			WeightUnit unitType;
+			await using (SqliteDataReader reader = await categoryCommand.ExecuteReaderAsync())
+			{
+				if (!(await reader.ReadAsync()))
+				{
+                    throw new InvalidOperationException("Inbound category was not found.");
+				}
+
+				categoryName = reader.GetString(0);
+				unitType = ParseUnit(reader.GetString(1));
+			}
+
+			WeightUnit inputUnitType = ResolveInputUnit(unitType, item.InputUnitType);
+			double normalizedQuantity = NormalizeQuantity(item.Quantity, inputUnitType);
+			if (normalizedQuantity <= 0.0)
+			{
+				continue;
+			}
+
+			double normalizedUnitPrice = Math.Round(item.UnitPrice, 2);
+			detailItems.Add(new OrderDetailItemModel
+			{
+				CategoryId = item.CategoryId,
+				CategoryName = categoryName,
+				Quantity = normalizedQuantity,
+				UnitType = inputUnitType,
+				UnitPrice = normalizedUnitPrice,
+				LineAmount = Math.Round(normalizedQuantity * normalizedUnitPrice, 2)
+			});
+		}
+
+		return detailItems;
 	}
 
 	private static async Task<long> GetOrCreateCustomerAsync(SqliteConnection connection, SqliteTransaction transaction, string customerName, long now, bool markInbound, bool markOutbound)

@@ -8,59 +8,103 @@
     xmlns:models="using:ClothingRecycler.Desktop.Models"
     mc:Ignorable="d">
     <ScrollViewer>
-        <StackPanel Padding="24" Spacing="16">
-            <CommandBar>
-                <AppBarButton Click="OnRefreshClick" Icon="Refresh" Label="&#x5237;&#x65B0;" />
-            </CommandBar>
+        <StackPanel MaxWidth="1680" Padding="32,28,32,40" Spacing="24">
+            <Border Style="{StaticResource WorkbenchHeroSurfaceStyle}">
+                <Grid>
+                    <Border
+                        Height="5"
+                        VerticalAlignment="Top"
+                        Background="{StaticResource BrandBrush}"
+                        CornerRadius="28,28,0,0" />
 
-            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;" />
-            <TextBlock
-                Style="{StaticResource MutedTextStyle}"
-                Text="&#x57FA;&#x4E8E;&#x5F53;&#x524D;&#x5E93;&#x5B58;&#x3001;&#x6536;&#x8D2D;&#x4EF7;&#x548C;&#x552E;&#x4EF7;&#xFF0C;&#x67E5;&#x770B;&#x5404;&#x5206;&#x7C7B;&#x7684;&#x9884;&#x8BA1;&#x6536;&#x5165;&#x3001;&#x8865;&#x8D27;&#x63D0;&#x9192;&#x548C;&#x5355;&#x4EF7;&#x7A7A;&#x95F4;&#x3002;" />
+                    <Grid Padding="28" ColumnSpacing="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="1.2*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="14">
+                            <TextBlock Style="{StaticResource WorkbenchEyebrowTextStyle}" Text="FORECAST" />
+                            <TextBlock
+                                Style="{StaticResource WorkbenchHeroTitleTextStyle}"
+                                Text="先看净利润空间，再决定哪些分类优先补货、哪些分类值得继续做。" />
+                            <TextBlock
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="预计收入页现在只围绕净利润来讲清楚三件事：当前总利润空间、需要优先补货的分类、以及最有价格空间的分类。" />
+                        </StackPanel>
+
+                        <Grid
+                            Grid.Column="1"
+                            ColumnSpacing="12"
+                            RowSpacing="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Button
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                Click="OnProfitFormulaClick"
+                                Style="{StaticResource CardActionButtonStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="总预计收入（净利润）" />
+                                    <TextBlock
+                                        Style="{StaticResource HeroMetricValueTextStyle}"
+                                        Foreground="{StaticResource BrandBrush}"
+                                        Text="{x:Bind ViewModel.ProjectedNetProfitText, Mode=OneWay}" />
+                                    <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="点击查看计算公式" />
+                                </StackPanel>
+                            </Button>
+
+                            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="预计销售额" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.ProjectedSalesAmountText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="库存成本" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TotalInventoryCostText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
 
             <Grid ColumnSpacing="16" RowSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
+                <Border Grid.Column="0" Style="{StaticResource WorkbenchMetricTileStyle}">
                     <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x603B;&#x9884;&#x8BA1;&#x6536;&#x5165;" />
-                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.TotalForecastRevenueText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="分类总数" />
+                        <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
+                <Border Grid.Column="1" Style="{StaticResource WorkbenchMetricTileStyle}">
                     <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5E93;&#x5B58;&#x6210;&#x672C;" />
-                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.TotalInventoryCostText, Mode=OneWay}" />
+                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="待补货分类" />
+                        <TextBlock
+                            Style="{StaticResource HeroMetricValueTextStyle}"
+                            Foreground="{StaticResource DangerBrush}"
+                            Text="{x:Bind ViewModel.LowStockCountText, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4F30;&#x7B97;&#x6BDB;&#x5229;" />
-                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.EstimatedGrossMarginText, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="3" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5206;&#x7C7B;&#x603B;&#x6570;" />
-                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="4" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5F85;&#x8865;&#x8D27;&#x5206;&#x7C7B;" />
-                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Foreground="{StaticResource DangerBrush}" Text="{x:Bind ViewModel.LowStockCountText, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
+                <Button Grid.Column="2" Click="OnRefreshClick" Content="刷新" MinWidth="96" />
             </Grid>
 
             <Grid ColumnSpacing="16">
@@ -69,9 +113,9 @@
                     <ColumnDefinition Width="4*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="12">
-                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;&#x6392;&#x884C;" />
+                <Border Grid.Column="0" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="预计收入（净利润）排行" />
 
                         <Grid ColumnSpacing="12" Padding="0,0,0,8">
                             <Grid.ColumnDefinitions>
@@ -80,38 +124,47 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Style="{StaticResource TableHeaderTextStyle}" Text="&#x5206;&#x7C7B;" />
-                            <TextBlock Grid.Column="1" Style="{StaticResource TableHeaderTextStyle}" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;" />
-                            <TextBlock Grid.Column="2" Style="{StaticResource TableHeaderTextStyle}" Text="&#x552E;&#x4EF7;" />
-                            <TextBlock Grid.Column="3" Style="{StaticResource TableHeaderTextStyle}" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;" />
+                            <TextBlock Grid.Column="0" Style="{StaticResource TableHeaderTextStyle}" Text="分类" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource TableHeaderTextStyle}" Text="当前库存" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource TableHeaderTextStyle}" Text="卖价" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource TableHeaderTextStyle}" Text="预计净利润" />
                         </Grid>
 
                         <ListView
                             ItemsSource="{x:Bind ViewModel.TopForecastCategories, Mode=OneWay}"
                             SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0,0,0,10" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:CategoryModel">
-                                    <Grid ColumnSpacing="12" Padding="0,10">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource WorkbenchRecordCardStyle}">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
 
-                                        <TextBlock Grid.Column="0" FontWeight="SemiBold" Text="{x:Bind Name}" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="{x:Bind DisplayStockText}" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="{x:Bind SellPriceText}" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="3" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ForecastRevenueText}" VerticalAlignment="Center" />
-                                    </Grid>
+                                            <TextBlock Grid.Column="0" Style="{StaticResource ListTitleTextStyle}" Text="{x:Bind Name}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{x:Bind DisplayStockText}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{x:Bind SellPriceText}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" Foreground="{StaticResource BrandBrush}" FontWeight="SemiBold" Text="{x:Bind ForecastNetProfitText}" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
 
                         <TextBlock
                             HorizontalAlignment="Center"
-                            Opacity="0.72"
-                            Text="&#x8FD8;&#x6CA1;&#x6709;&#x53EF;&#x7528;&#x7684;&#x5206;&#x7C7B;&#x548C;&#x5E93;&#x5B58;&#x6570;&#x636E;&#x3002;"
+                            Style="{StaticResource WorkbenchSupportingTextStyle}"
+                            Text="还没有可用的分类和库存数据。"
                             Visibility="{x:Bind ViewModel.ForecastRankingEmptyVisibility, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
@@ -122,66 +175,84 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Style="{StaticResource CardSurfaceStyle}">
-                        <StackPanel Spacing="12">
-                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x8865;&#x8D27;&#x63D0;&#x9192;" />
+                    <Border Grid.Row="0" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                        <StackPanel Spacing="14">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="补货提醒" />
 
                             <ListView
                                 ItemsSource="{x:Bind ViewModel.LowStockCategories, Mode=OneWay}"
                                 SelectionMode="None">
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Margin" Value="0,0,0,10" />
+                                    </Style>
+                                </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="models:CategoryModel">
-                                        <Grid ColumnSpacing="12" Padding="0,10">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="2*" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource WorkbenchRecordCardStyle}">
+                                            <Grid ColumnSpacing="12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="2*" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
 
-                                            <TextBlock Grid.Column="0" FontWeight="SemiBold" Text="{x:Bind Name}" VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="1" Text="{x:Bind DisplayStockText}" VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="2" Foreground="{StaticResource DangerBrush}" Text="{x:Bind ForecastRevenueText}" VerticalAlignment="Center" />
-                                        </Grid>
+                                                <TextBlock Grid.Column="0" Style="{StaticResource ListTitleTextStyle}" Text="{x:Bind Name}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{x:Bind DisplayStockText}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="2" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" Text="{x:Bind ForecastNetProfitText}" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
 
                             <TextBlock
                                 HorizontalAlignment="Center"
-                                Opacity="0.72"
-                                Text="&#x5F53;&#x524D;&#x6CA1;&#x6709;&#x89E6;&#x53D1;&#x4F4E;&#x5E93;&#x5B58;&#x7684;&#x5206;&#x7C7B;&#x3002;"
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="当前没有触发低库存的分类。"
                                 Visibility="{x:Bind ViewModel.LowStockEmptyVisibility, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
 
-                    <Border Grid.Row="1" Style="{StaticResource CardSurfaceStyle}">
-                        <StackPanel Spacing="12">
-                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x5355;&#x4EF7;&#x7A7A;&#x95F4;" />
+                    <Border Grid.Row="1" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                        <StackPanel Spacing="14">
+                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="单价空间" />
 
                             <ListView
                                 ItemsSource="{x:Bind ViewModel.TopSpreadCategories, Mode=OneWay}"
                                 SelectionMode="None">
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Margin" Value="0,0,0,10" />
+                                    </Style>
+                                </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="models:CategoryModel">
-                                        <Grid ColumnSpacing="12" Padding="0,10">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="2*" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource WorkbenchRecordCardStyle}">
+                                            <Grid ColumnSpacing="12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="2*" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
 
-                                            <TextBlock Grid.Column="0" FontWeight="SemiBold" Text="{x:Bind Name}" VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="1" Text="{x:Bind BuyPriceText}" VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="2" Foreground="{StaticResource BrandBrush}" Text="{x:Bind SellPriceText}" VerticalAlignment="Center" />
-                                        </Grid>
+                                                <TextBlock Grid.Column="0" Style="{StaticResource ListTitleTextStyle}" Text="{x:Bind Name}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{x:Bind BuyPriceText}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="2" Foreground="{StaticResource BrandBrush}" FontWeight="SemiBold" Text="{x:Bind SellPriceText}" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
 
                             <TextBlock
                                 HorizontalAlignment="Center"
-                                Opacity="0.72"
-                                Text="&#x6682;&#x65E0;&#x53EF;&#x7528;&#x7684;&#x5355;&#x4EF7;&#x6570;&#x636E;&#x3002;"
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="暂无可用的单价数据。"
                                 Visibility="{x:Bind ViewModel.PriceSpreadEmptyVisibility, Mode=OneWay}" />
                         </StackPanel>
                     </Border>

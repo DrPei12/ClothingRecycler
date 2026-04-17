@@ -4,6 +4,7 @@ namespace ClothingRecycler.Desktop.ViewModels
     {
         private readonly LocalDatabaseService _databaseService;
         private readonly List<CustomerCategoryPriceModel> _priceMemories = [];
+        private readonly record struct InboundDraftSnapshot(long? CategoryId, WeightUnit InputUnitType, double Quantity, double UnitPrice);
 
         private CustomerModel? _selectedCustomer;
         private string _newCustomerName = string.Empty;
@@ -89,9 +90,9 @@ namespace ClothingRecycler.Desktop.ViewModels
                     return "0";
                 }
 
-                return string.Join(" / ",
+                    return string.Join(" / ",
                     filledEntries
-                        .GroupBy(entry => entry.Category.UnitType)
+                        .GroupBy(entry => entry.UnitType)
                         .Select(group =>
                         {
                             var quantity = group.Sum(entry => entry.NormalizedQuantity);
@@ -108,6 +109,12 @@ namespace ClothingRecycler.Desktop.ViewModels
         public bool HasCustomerSelection => !string.IsNullOrWhiteSpace(ResolvedCustomerName);
 
         public bool CanSubmit => HasCustomerSelection && FilledEntries.Any() && FilledEntries.All(entry => entry.UnitPrice > 0);
+
+        public bool CanAddCategoryEntry =>
+            HasCustomerSelection
+            && Categories.Count > 0
+            && CategoryEntries.Count < Categories.Count
+            && CategoryEntries.All(entry => entry.HasSelectedCategory);
 
         public Visibility EmptyStateVisibility => Categories.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
@@ -148,10 +155,10 @@ namespace ClothingRecycler.Desktop.ViewModels
                 var selectedCustomerId = SelectedCustomer?.Id;
                 var preservedNewCustomerName = NewCustomerName;
                 var preservedDraft = clearDraft
-                    ? new Dictionary<long, (double Quantity, double UnitPrice)>()
-                    : CategoryEntries.ToDictionary(
-                        entry => entry.CategoryId,
-                        entry => (entry.Quantity, entry.UnitPrice));
+                    ? new List<InboundDraftSnapshot>()
+                    : CategoryEntries
+                        .Select(entry => new InboundDraftSnapshot(entry.CategoryId, entry.SelectedInputUnit, entry.Quantity, entry.UnitPrice))
+                        .ToList();
 
                 var categories = await _databaseService.GetActiveCategoriesAsync();
                 var customers = await _databaseService.GetCustomersAsync();
@@ -202,34 +209,19 @@ namespace ClothingRecycler.Desktop.ViewModels
             }
         }
 
-        public async Task<InboundOrderConfirmationModel> SubmitAsync()
+        public async Task<PendingInboundOrderModel> PrepareSubmitAsync()
         {
-            if (!HasCustomerSelection)
-            {
-                throw new InvalidOperationException("\u8BF7\u5148\u9009\u62E9\u6216\u65B0\u5EFA\u5BA2\u6237\u3002");
-            }
+            var customerName = ResolveCustomerNameOrThrow();
+            var lines = BuildValidatedLines();
+            return await _databaseService.PrepareInboundOrderAsync(customerName, lines);
+        }
 
-            var lines = FilledEntries
-                .Select(entry => new InboundOrderLineInputModel
-                {
-                    CategoryId = entry.CategoryId,
-                    Quantity = entry.NormalizedQuantity,
-                    UnitPrice = entry.UnitPrice
-                })
-                .ToList();
+        public async Task<InboundOrderConfirmationModel> ConfirmSubmitAsync(PendingInboundOrderModel pendingOrder)
+        {
+            ArgumentNullException.ThrowIfNull(pendingOrder);
 
-            if (lines.Count == 0)
-            {
-                throw new InvalidOperationException("\u8BF7\u81F3\u5C11\u586B\u5199\u4E00\u4E2A\u5206\u7C7B\u7684\u5165\u5E93\u6570\u91CF\u3002");
-            }
-
-            if (lines.Any(line => line.UnitPrice <= 0))
-            {
-                throw new InvalidOperationException("\u6240\u6709\u5DF2\u586B\u5199\u7684\u5165\u5E93\u660E\u7EC6\u90FD\u5FC5\u987B\u8BBE\u7F6E\u5927\u4E8E 0 \u7684\u5355\u4EF7\u3002");
-            }
-
-            var customerName = ResolvedCustomerName;
-            var confirmation = await _databaseService.AddInboundOrderAsync(customerName, lines);
+            var confirmation = await _databaseService.ConfirmInboundOrderAsync(pendingOrder);
+            var customerName = pendingOrder.CustomerName;
 
             NewCustomerName = string.Empty;
             StatusMessage = "\u5165\u5E93\u5DF2\u4FDD\u5B58\uff0C\u5E93\u5B58\u548C\u5165\u5E93\u8BA2\u5355\u5DF2\u66F4\u65B0\u3002";
@@ -242,9 +234,45 @@ namespace ClothingRecycler.Desktop.ViewModels
             return confirmation;
         }
 
+        public async Task<InboundOrderConfirmationModel> SubmitAsync()
+        {
+            var pendingOrder = await PrepareSubmitAsync();
+            return await ConfirmSubmitAsync(pendingOrder);
+        }
+
+        public void AddCategoryEntry()
+        {
+            if (!CanAddCategoryEntry)
+            {
+                return;
+            }
+
+            CategoryEntries.Add(CreateCategoryEntry(Categories));
+            RaiseComputedStateChanged();
+        }
+
+        public void RemoveCategoryEntry(InboundOrderDraftLineModel entry)
+        {
+            if (!CategoryEntries.Contains(entry))
+            {
+                return;
+            }
+
+            if (CategoryEntries.Count == 1)
+            {
+                entry.SelectedCategory = null;
+                RaiseComputedStateChanged();
+                return;
+            }
+
+            entry.PropertyChanged -= OnDraftLinePropertyChanged;
+            CategoryEntries.Remove(entry);
+            RaiseComputedStateChanged();
+        }
+
         private void RebuildCategoryEntries(
             IReadOnlyList<CategoryModel> categories,
-            IReadOnlyDictionary<long, (double Quantity, double UnitPrice)> preservedDraft,
+            IReadOnlyList<InboundDraftSnapshot> preservedDraft,
             bool clearDraft)
         {
             foreach (var entry in CategoryEntries)
@@ -254,19 +282,13 @@ namespace ClothingRecycler.Desktop.ViewModels
 
             CategoryEntries.Clear();
 
-            foreach (var category in categories)
+            var rowsToRestore = !clearDraft && preservedDraft.Count > 0
+                ? preservedDraft
+                    : new List<InboundDraftSnapshot> { new(null, WeightUnit.Kilogram, 0, 0) };
+
+            foreach (var draft in rowsToRestore)
             {
-                var suggestedUnitPrice = GetRememberedPrice(category.Id) ?? category.BuyPrice;
-                var entry = new InboundOrderDraftLineModel(category, suggestedUnitPrice);
-
-                if (!clearDraft && preservedDraft.TryGetValue(category.Id, out var draft))
-                {
-                    entry.Quantity = draft.Quantity;
-                    entry.UnitPrice = draft.UnitPrice > 0 ? draft.UnitPrice : suggestedUnitPrice;
-                }
-
-                entry.PropertyChanged += OnDraftLinePropertyChanged;
-                CategoryEntries.Add(entry);
+                CategoryEntries.Add(CreateCategoryEntry(categories, draft));
             }
         }
 
@@ -274,7 +296,12 @@ namespace ClothingRecycler.Desktop.ViewModels
         {
             foreach (var entry in CategoryEntries)
             {
-                var rememberedPrice = GetRememberedPrice(entry.CategoryId) ?? entry.Category.BuyPrice;
+                if (!entry.CategoryId.HasValue || entry.SelectedCategory is null)
+                {
+                    continue;
+                }
+
+                var rememberedPrice = GetRememberedPrice(entry.CategoryId.Value) ?? entry.SelectedCategory.BuyPrice;
                 entry.ApplySuggestedUnitPrice(rememberedPrice);
             }
         }
@@ -307,10 +334,26 @@ namespace ClothingRecycler.Desktop.ViewModels
 
         private void OnDraftLinePropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
+            if (sender is InboundOrderDraftLineModel entry
+                && e.PropertyName is nameof(InboundOrderDraftLineModel.SelectedCategory))
+            {
+                if (entry.CategoryId.HasValue && entry.SelectedCategory is not null)
+                {
+                    var rememberedPrice = GetRememberedPrice(entry.CategoryId.Value) ?? entry.SelectedCategory.BuyPrice;
+                    entry.ApplySuggestedUnitPrice(rememberedPrice);
+                }
+            }
+
             if (e.PropertyName is nameof(InboundOrderDraftLineModel.Quantity)
                 or nameof(InboundOrderDraftLineModel.UnitPrice)
                 or nameof(InboundOrderDraftLineModel.HasInput)
-                or nameof(InboundOrderDraftLineModel.LineAmount))
+                or nameof(InboundOrderDraftLineModel.LineAmount)
+                or nameof(InboundOrderDraftLineModel.SelectedCategory))
+            {
+                RaiseComputedStateChanged();
+            }
+
+            if (e.PropertyName is nameof(InboundOrderDraftLineModel.SelectedInputUnit))
             {
                 RaiseComputedStateChanged();
             }
@@ -324,8 +367,81 @@ namespace ClothingRecycler.Desktop.ViewModels
             OnPropertyChanged(nameof(TotalCostText));
             OnPropertyChanged(nameof(HasCustomerSelection));
             OnPropertyChanged(nameof(CanSubmit));
+            OnPropertyChanged(nameof(CanAddCategoryEntry));
             OnPropertyChanged(nameof(CustomerPromptVisibility));
             OnPropertyChanged(nameof(EntryPanelVisibility));
+        }
+
+        private string ResolveCustomerNameOrThrow()
+        {
+            if (!HasCustomerSelection)
+            {
+                throw new InvalidOperationException("\u8BF7\u5148\u9009\u62E9\u6216\u65B0\u5EFA\u5BA2\u6237\u3002");
+            }
+
+            return ResolvedCustomerName;
+        }
+
+        private List<InboundOrderLineInputModel> BuildValidatedLines()
+        {
+            var selectedEntries = CategoryEntries
+                .Where(entry => entry.HasSelectedCategory)
+                .ToList();
+
+            var duplicateCategory = selectedEntries
+                .Where(entry => entry.CategoryId.HasValue)
+                .GroupBy(entry => entry.CategoryId!.Value)
+                .FirstOrDefault(group => group.Count() > 1);
+
+            if (duplicateCategory is not null)
+            {
+                throw new InvalidOperationException("\u540C\u4E00\u5206\u7C7B\u53EA\u9700\u586B\u5199\u4E00\u6B21\uFF0C\u8BF7\u5220\u9664\u91CD\u590D\u884C\u3002");
+            }
+
+            var lines = FilledEntries
+                .Select(entry => new InboundOrderLineInputModel
+                {
+                    CategoryId = entry.CategoryId!.Value,
+                    Quantity = entry.NormalizedQuantity,
+                    UnitPrice = entry.UnitPrice,
+                    InputUnitType = entry.SelectedInputUnit
+                })
+                .ToList();
+
+            if (lines.Count == 0)
+            {
+                throw new InvalidOperationException("\u8BF7\u81F3\u5C11\u586B\u5199\u4E00\u4E2A\u5206\u7C7B\u7684\u5165\u5E93\u6570\u91CF\u3002");
+            }
+
+            if (lines.Any(line => line.UnitPrice <= 0))
+            {
+                throw new InvalidOperationException("\u6240\u6709\u5DF2\u586B\u5199\u7684\u5165\u5E93\u660E\u7EC6\u90FD\u5FC5\u987B\u8BBE\u7F6E\u5927\u4E8E 0 \u7684\u5355\u4EF7\u3002");
+            }
+
+            return lines;
+        }
+
+        private InboundOrderDraftLineModel CreateCategoryEntry(
+            IReadOnlyList<CategoryModel> categories,
+            InboundDraftSnapshot? snapshot = null)
+        {
+            var selectedCategory = snapshot?.CategoryId.HasValue == true
+                ? categories.FirstOrDefault(category => category.Id == snapshot.Value.CategoryId.Value)
+                : null;
+
+            var suggestedUnitPrice = selectedCategory is null
+                ? 0
+                : GetRememberedPrice(selectedCategory.Id) ?? selectedCategory.BuyPrice;
+
+            var entry = new InboundOrderDraftLineModel(categories, selectedCategory, suggestedUnitPrice);
+            entry.PropertyChanged += OnDraftLinePropertyChanged;
+
+            if (selectedCategory is not null && snapshot.HasValue)
+            {
+                entry.RestoreInput(snapshot.Value.Quantity, snapshot.Value.UnitPrice, snapshot.Value.InputUnitType);
+            }
+
+            return entry;
         }
 
         private static string Currency(double value) => $"\u00A5{value:0.##}";

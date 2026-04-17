@@ -4,33 +4,34 @@ namespace ClothingRecycler.Desktop.ViewModels
     {
         private readonly LocalDatabaseService _databaseService;
         private readonly List<StockCategoryItemModel> _allCategories = [];
-        private string _selectedFilter = "\u5168\u90E8\u5206\u7C7B";
+        private string _selectedFilter = "全部分类";
         private string _searchText = string.Empty;
         private StockCategoryItemModel? _selectedCategory;
-        private string _totalInventoryCost = "\u00A50";
+        private string _totalInventoryCost = "¥0";
         private string _categoryCountText = "0";
         private string _lowStockCountText = "0";
-        private string _selectedCategoryName = "\u8BF7\u9009\u62E9\u5206\u7C7B";
+        private string _selectedCategoryName = "请选择分类";
         private string _selectedCategoryStockText = "0";
-        private string _selectedCategoryBuyPriceText = "\u00A50";
-        private string _selectedCategorySellPriceText = "\u00A50";
-        private string _selectedCategoryInventoryCostText = "\u00A50";
-        private string _selectedCategoryPriceSpreadText = "\u00A50";
-        private string _selectedCategoryLastActivityText = "\u6682\u65E0\u6D41\u6C34";
-        private string _selectedCategoryLastAuditText = "\u6682\u65E0\u76D8\u70B9";
-        private string _selectedCategoryActivitySummaryText = "\u6682\u65E0\u4E1A\u52A1\u8BB0\u5F55";
-        private string _adjustmentSectionTitle = "\u6700\u8FD1\u8C03\u6574";
-        private string _auditSectionTitle = "\u6700\u8FD1\u76D8\u70B9";
-        private string _lowStockTaskSummaryText = "\u6682\u65E0\u5F85\u8865\u8D27\u5206\u7C7B";
+        private string _selectedCategoryBuyPriceText = "¥0";
+        private string _selectedCategorySellPriceText = "¥0";
+        private string _selectedCategoryInventoryCostText = "¥0";
+        private string _selectedCategoryPriceBucketSummaryText = "暂无库存";
+        private string _selectedCategoryProjectedNetProfitText = "¥0";
+        private string _selectedCategoryLastActivityText = "暂无流水";
+        private string _selectedCategoryLastAuditText = "暂无盘点";
+        private string _selectedCategoryActivitySummaryText = "暂无业务记录";
+        private string _adjustmentSectionTitle = "最近调整";
+        private string _auditSectionTitle = "最近盘点";
+        private string _lowStockTaskSummaryText = "暂无待补货分类";
 
         public StockViewModel(LocalDatabaseService databaseService)
         {
             _databaseService = databaseService;
-            Title = "\u5E93\u5B58";
-            Filters.Add("\u5168\u90E8\u5206\u7C7B");
-            Filters.Add("\u4EC5\u4F4E\u5E93\u5B58");
-            Filters.Add("\u4EC5\u6709\u5E93\u5B58");
-            Filters.Add("\u5DF2\u5F52\u6863");
+            Title = "库存";
+            Filters.Add("全部分类");
+            Filters.Add("仅低库存");
+            Filters.Add("仅有库存");
+            Filters.Add("已归档");
         }
 
         public ObservableCollection<string> Filters { get; } = [];
@@ -42,6 +43,8 @@ namespace ClothingRecycler.Desktop.ViewModels
         public ObservableCollection<StockAuditRecordModel> RecentAudits { get; } = [];
 
         public ObservableCollection<StockCategoryItemModel> LowStockTasks { get; } = [];
+
+        public ObservableCollection<CategoryPriceBucketModel> SelectedCategoryPriceBuckets { get; } = [];
 
         public string SelectedFilter
         {
@@ -133,10 +136,16 @@ namespace ClothingRecycler.Desktop.ViewModels
             private set => SetProperty(ref _selectedCategoryInventoryCostText, value);
         }
 
-        public string SelectedCategoryPriceSpreadText
+        public string SelectedCategoryPriceBucketSummaryText
         {
-            get => _selectedCategoryPriceSpreadText;
-            private set => SetProperty(ref _selectedCategoryPriceSpreadText, value);
+            get => _selectedCategoryPriceBucketSummaryText;
+            private set => SetProperty(ref _selectedCategoryPriceBucketSummaryText, value);
+        }
+
+        public string SelectedCategoryProjectedNetProfitText
+        {
+            get => _selectedCategoryProjectedNetProfitText;
+            private set => SetProperty(ref _selectedCategoryProjectedNetProfitText, value);
         }
 
         public string SelectedCategoryLastActivityText
@@ -191,6 +200,9 @@ namespace ClothingRecycler.Desktop.ViewModels
 
         public Visibility LowStockTasksEmptyVisibility => LowStockTasks.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
+        public Visibility SelectedCategoryPriceBucketsEmptyVisibility =>
+            HasSelectedCategory && SelectedCategoryPriceBuckets.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
         public async Task LoadAsync(long? preferredSelectedCategoryId = null)
         {
             IsBusy = true;
@@ -222,27 +234,36 @@ namespace ClothingRecycler.Desktop.ViewModels
         {
             RecentAdjustments.Clear();
             RecentAudits.Clear();
+            SelectedCategoryPriceBuckets.Clear();
 
             if (SelectedCategory is null)
             {
-                SelectedCategoryName = "\u8BF7\u9009\u62E9\u5206\u7C7B";
+                SelectedCategoryName = "请选择分类";
                 SelectedCategoryStockText = "0";
                 SelectedCategoryBuyPriceText = Currency(0);
                 SelectedCategorySellPriceText = Currency(0);
                 SelectedCategoryInventoryCostText = Currency(0);
-                SelectedCategoryPriceSpreadText = Currency(0);
-                SelectedCategoryLastActivityText = "\u6682\u65E0\u6D41\u6C34";
-                SelectedCategoryLastAuditText = "\u6682\u65E0\u76D8\u70B9";
-                SelectedCategoryActivitySummaryText = "\u6682\u65E0\u4E1A\u52A1\u8BB0\u5F55";
-                AuditSectionTitle = "\u6700\u8FD1\u76D8\u70B9";
-                AdjustmentSectionTitle = "\u6700\u8FD1\u8C03\u6574";
+                SelectedCategoryPriceBucketSummaryText = "暂无库存";
+                SelectedCategoryProjectedNetProfitText = Currency(0);
+                SelectedCategoryLastActivityText = "暂无流水";
+                SelectedCategoryLastAuditText = "暂无盘点";
+                SelectedCategoryActivitySummaryText = "暂无业务记录";
+                AuditSectionTitle = "最近盘点";
+                AdjustmentSectionTitle = "最近调整";
                 RaiseSelectionState();
                 return;
             }
 
             var item = SelectedCategory;
-            var audits = await _databaseService.GetRecentStockAuditsAsync(8, item.Id);
-            var adjustments = await _databaseService.GetRecentStockAdjustmentsAsync(12, item.Id);
+            var auditsTask = _databaseService.GetRecentStockAuditsAsync(8, item.Id);
+            var adjustmentsTask = _databaseService.GetRecentStockAdjustmentsAsync(12, item.Id);
+            var priceBucketsTask = _databaseService.GetCategoryPriceBucketsAsync(item.Id);
+
+            await Task.WhenAll(auditsTask, adjustmentsTask, priceBucketsTask);
+
+            var audits = await auditsTask;
+            var adjustments = await adjustmentsTask;
+            var priceBuckets = await priceBucketsTask;
 
             foreach (var audit in audits)
             {
@@ -254,17 +275,23 @@ namespace ClothingRecycler.Desktop.ViewModels
                 RecentAdjustments.Add(adjustment);
             }
 
+            foreach (var priceBucket in priceBuckets)
+            {
+                SelectedCategoryPriceBuckets.Add(priceBucket);
+            }
+
             SelectedCategoryName = item.Name;
             SelectedCategoryStockText = item.DisplayStockText;
-            SelectedCategoryBuyPriceText = item.BuyPriceText;
+            SelectedCategoryBuyPriceText = item.BuyPriceRangeText;
             SelectedCategorySellPriceText = item.SellPriceText;
             SelectedCategoryInventoryCostText = item.InventoryCostText;
-            SelectedCategoryPriceSpreadText = item.PriceSpreadText;
+            SelectedCategoryPriceBucketSummaryText = item.PriceBucketSummaryText;
+            SelectedCategoryProjectedNetProfitText = item.ProjectedNetProfitText;
             SelectedCategoryLastActivityText = item.LastActivityText;
-            SelectedCategoryLastAuditText = audits.FirstOrDefault()?.TimestampText ?? "\u6682\u65E0\u76D8\u70B9";
+            SelectedCategoryLastAuditText = audits.FirstOrDefault()?.TimestampText ?? "暂无盘点";
             SelectedCategoryActivitySummaryText = item.ActivitySummaryText;
-            AuditSectionTitle = $"{item.Name} \u7684\u76D8\u70B9\u8BB0\u5F55";
-            AdjustmentSectionTitle = $"{item.Name} \u7684\u8C03\u6574\u8BB0\u5F55";
+            AuditSectionTitle = $"{item.Name} 的盘点记录";
+            AdjustmentSectionTitle = $"{item.Name} 的调整记录";
             RaiseSelectionState();
         }
 
@@ -272,11 +299,11 @@ namespace ClothingRecycler.Desktop.ViewModels
         {
             if (SelectedCategory is null || input.CategoryId != SelectedCategory.Id)
             {
-                throw new InvalidOperationException("\u8BF7\u5148\u9009\u62E9\u8981\u8C03\u6574\u7684\u5206\u7C7B\u3002");
+                throw new InvalidOperationException("请先选择要调整的分类。");
             }
 
             await _databaseService.AdjustCategoryStockAsync(input.CategoryId, input.AdjustedQuantity, input.Reason);
-            StatusMessage = "\u5E93\u5B58\u5DF2\u4FEE\u6B63\uff0C\u8C03\u6574\u8BB0\u5F55\u5DF2\u4FDD\u5B58\u3002";
+            StatusMessage = "库存已修正，调整记录已保存。";
             await LoadAsync(input.CategoryId);
         }
 
@@ -284,19 +311,19 @@ namespace ClothingRecycler.Desktop.ViewModels
         {
             if (SelectedCategory is null || input.CategoryId != SelectedCategory.Id)
             {
-                throw new InvalidOperationException("\u8BF7\u5148\u9009\u62E9\u8981\u76D8\u70B9\u7684\u5206\u7C7B\u3002");
+                throw new InvalidOperationException("请先选择要盘点的分类。");
             }
 
             await _databaseService.CreateStockAuditAsync(input.CategoryId, input.ActualQuantity, input.Note);
-            StatusMessage = "\u76D8\u70B9\u8BB0\u5F55\u5DF2\u4FDD\u5B58\uff0C\u5982\u6709\u5DEE\u5F02\u5DF2\u540C\u6B65\u6821\u6B63\u5E93\u5B58\u3002";
+            StatusMessage = "盘点记录已保存，如有差异已同步校正库存。";
             await LoadAsync(input.CategoryId);
         }
 
         public async Task FocusCategoryAsync(long categoryId)
         {
-            if (SelectedFilter != "\u5168\u90E8\u5206\u7C7B")
+            if (SelectedFilter != "全部分类")
             {
-                SelectedFilter = "\u5168\u90E8\u5206\u7C7B";
+                SelectedFilter = "全部分类";
             }
 
             if (!string.IsNullOrWhiteSpace(SearchText))
@@ -346,17 +373,17 @@ namespace ClothingRecycler.Desktop.ViewModels
             }
 
             LowStockTaskSummaryText = lowStockItems.Count == 0
-                ? "\u6682\u65E0\u5F85\u8865\u8D27\u5206\u7C7B"
-                : $"{lowStockItems.Count} \u4E2A\u5206\u7C7B\u9700\u8981\u8865\u8D27";
+                ? "暂无待补货分类"
+                : $"{lowStockItems.Count} 个分类需要补货";
 
             OnPropertyChanged(nameof(LowStockTasksEmptyVisibility));
         }
 
         private bool MatchesFilter(StockCategoryItemModel item) => SelectedFilter switch
         {
-            "\u4EC5\u4F4E\u5E93\u5B58" => !item.IsArchived && item.IsLowStock,
-            "\u4EC5\u6709\u5E93\u5B58" => item.HasStock,
-            "\u5DF2\u5F52\u6863" => item.IsArchived,
+            "仅低库存" => !item.IsArchived && item.IsLowStock,
+            "仅有库存" => item.HasStock,
+            "已归档" => item.IsArchived,
             _ => true
         };
 
@@ -377,8 +404,9 @@ namespace ClothingRecycler.Desktop.ViewModels
             OnPropertyChanged(nameof(DetailVisibility));
             OnPropertyChanged(nameof(RecentAuditsEmptyVisibility));
             OnPropertyChanged(nameof(RecentAdjustmentsEmptyVisibility));
+            OnPropertyChanged(nameof(SelectedCategoryPriceBucketsEmptyVisibility));
         }
 
-        private static string Currency(double value) => $"\u00A5{value:0.##}";
+        private static string Currency(double value) => $"¥{value:0.##}";
     }
 }

@@ -7,5 +7,7 @@ namespace ClothingRecycler.Desktop.Models
         public double Quantity { get; init; }
 
         public double UnitPrice { get; init; }
+
+        public WeightUnit? InputUnitType { get; init; }
     }
 }

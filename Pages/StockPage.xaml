@@ -7,228 +7,76 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:ClothingRecycler.Desktop.Models"
     mc:Ignorable="d">
-    <Grid Padding="24" RowSpacing="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <ScrollViewer>
+        <StackPanel MaxWidth="1680" Padding="32,28,32,40" Spacing="24">
+            <Border Style="{StaticResource WorkbenchHeroSurfaceStyle}">
+                <Grid>
+                    <Border
+                        Height="5"
+                        VerticalAlignment="Top"
+                        Background="{StaticResource BrandBrush}"
+                        CornerRadius="28,28,0,0" />
 
-        <StackPanel Grid.Row="0" Spacing="6">
-            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="&#x5E93;&#x5B58;&#x4E2D;&#x5FC3;" />
-            <TextBlock
-                Style="{StaticResource MutedTextStyle}"
-                Text="&#x5DE6;&#x4FA7;&#x7B5B;&#x9009;&#x548C;&#x67E5;&#x627E;&#x5E93;&#x5B58;&#x5206;&#x7C7B;&#xFF0C;&#x53F3;&#x4FA7;&#x67E5;&#x770B;&#x5F53;&#x524D;&#x5E93;&#x5B58;&#x3001;&#x4EF7;&#x683C;&#x4E0E;&#x624B;&#x52A8;&#x4FEE;&#x6B63;&#x8BB0;&#x5F55;&#x3002;" />
-        </StackPanel>
-
-        <Grid Grid.Row="1" ColumnSpacing="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
-                <StackPanel Spacing="8">
-                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5E93;&#x5B58;&#x603B;&#x6210;&#x672C;" />
-                    <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.TotalInventoryCost, Mode=OneWay}" />
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
-                <StackPanel Spacing="8">
-                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5206;&#x7C7B;&#x603B;&#x6570;" />
-                    <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
-                <StackPanel Spacing="8">
-                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4F4E;&#x5E93;&#x5B58;&#x5206;&#x7C7B;" />
-                    <TextBlock
-                        Style="{StaticResource MetricValueTextStyle}"
-                        Foreground="{StaticResource DangerBrush}"
-                        Text="{x:Bind ViewModel.LowStockCountText, Mode=OneWay}" />
-                </StackPanel>
-            </Border>
-        </Grid>
-
-        <Grid Grid.Row="2" ColumnSpacing="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="5*" />
-                <ColumnDefinition Width="6*" />
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
-                <Grid RowSpacing="12">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <Grid Grid.Row="0" ColumnSpacing="12">
+                    <Grid Padding="28" ColumnSpacing="18">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="1.2*" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBox
-                            x:Name="SearchTextBox"
-                            Grid.Column="0"
-                            PlaceholderText="&#x641C;&#x7D22;&#x5206;&#x7C7B;"
-                            TextChanged="OnSearchTextChanged" />
+                        <StackPanel Spacing="14">
+                            <TextBlock Style="{StaticResource WorkbenchEyebrowTextStyle}" Text="STOCK CENTER" />
+                            <TextBlock
+                                Style="{StaticResource WorkbenchHeroTitleTextStyle}"
+                                Text="&#x5148;&#x627E;&#x5230;&#x5206;&#x7C7B;&#xFF0C;&#x518D;&#x770B;&#x5F53;&#x524D;&#x5E93;&#x5B58;&#x3001;&#x8FDB;&#x4EF7;&#x5206;&#x5C42;&#x548C;&#x8C03;&#x6574;&#x8BB0;&#x5F55;&#x3002;" />
+                            <TextBlock
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="&#x5E93;&#x5B58;&#x9875;&#x73B0;&#x5728;&#x66F4;&#x50CF;&#x4E00;&#x4E2A;&#x7BA1;&#x7406;&#x53F0;&#xFF1A;&#x5DE6;&#x8FB9;&#x7528;&#x6765;&#x5B9A;&#x4F4D;&#x5206;&#x7C7B;&#xFF0C;&#x53F3;&#x8FB9;&#x53EA;&#x770B;&#x8BE5;&#x5206;&#x7C7B;&#x7684;&#x5E93;&#x5B58;&#x7ED3;&#x679C;&#x548C;&#x8BB0;&#x5F55;&#x3002;" />
+                        </StackPanel>
 
-                        <ComboBox
+                        <Grid
                             Grid.Column="1"
-                            ItemsSource="{x:Bind ViewModel.Filters, Mode=OneWay}"
-                            MinWidth="150"
-                            SelectedItem="{x:Bind ViewModel.SelectedFilter, Mode=TwoWay}"
-                            SelectionChanged="OnFilterSelectionChanged" />
+                            ColumnSpacing="12"
+                            RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                        <CommandBar Grid.Column="2" DefaultLabelPosition="Right">
-                            <AppBarButton Click="OnRefreshClick" Icon="Refresh" Label="&#x5237;&#x65B0;" />
-                        </CommandBar>
-                    </Grid>
-
-                    <Grid Grid.Row="1">
-                        <ListView
-                            ItemsSource="{x:Bind ViewModel.Categories, Mode=OneWay}"
-                            SelectedItem="{x:Bind ViewModel.SelectedCategory, Mode=TwoWay}"
-                            SelectionChanged="OnCategorySelectionChanged"
-                            SelectionMode="Single">
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="models:StockCategoryItemModel">
-                                    <Grid Padding="0,10" ColumnSpacing="12" Opacity="{x:Bind ItemOpacity}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <StackPanel Grid.Column="0" Spacing="4">
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
-                                                <TextBlock
-                                                    Opacity="0.72"
-                                                    Text="{x:Bind HealthText}" />
-                                            </StackPanel>
-                                            <TextBlock Opacity="0.72" Text="{x:Bind ActivitySummaryText}" />
-                                            <TextBlock Opacity="0.72" Text="{x:Bind LastActivityText}" />
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                            <TextBlock
-                                                FontWeight="SemiBold"
-                                                HorizontalAlignment="Right"
-                                                Text="{x:Bind DisplayStockText}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            Opacity="0.72"
-                            Text="&#x5F53;&#x524D;&#x7B5B;&#x9009;&#x4E0B;&#x6CA1;&#x6709;&#x5339;&#x914D;&#x7684;&#x5206;&#x7C7B;&#x3002;"
-                            VerticalAlignment="Center"
-                            Visibility="{x:Bind ViewModel.EmptyStateVisibility, Mode=OneWay}" />
+                            <Border Grid.Column="0" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5E93;&#x5B58;&#x603B;&#x6210;&#x672C;" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TotalInventoryCost, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5206;&#x7C7B;&#x603B;&#x6570;" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4F4E;&#x5E93;&#x5B58;&#x5206;&#x7C7B;" />
+                                    <TextBlock
+                                        Style="{StaticResource HeroMetricValueTextStyle}"
+                                        Foreground="{StaticResource DangerBrush}"
+                                        Text="{x:Bind ViewModel.LowStockCountText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                     </Grid>
                 </Grid>
             </Border>
 
-            <Grid Grid.Column="1" RowSpacing="16">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*" />
+                    <ColumnDefinition Width="6*" />
+                </Grid.ColumnDefinitions>
 
-                <Border Grid.Row="0" Style="{StaticResource CardSurfaceStyle}">
-                    <Grid>
-                        <Grid Visibility="{x:Bind ViewModel.DetailVisibility, Mode=OneWay}">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <Grid Grid.Row="0" ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0" Spacing="6">
-                                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryName, Mode=OneWay}" />
-                                    <TextBlock Opacity="0.72" Text="{x:Bind ViewModel.SelectedCategoryActivitySummaryText, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <CommandBar Grid.Column="1" DefaultLabelPosition="Right">
-                                    <AppBarButton Click="OnAuditStockClick" Icon="Accept" Label="&#x76D8;&#x70B9;&#x767B;&#x8BB0;" />
-                                    <AppBarButton Click="OnAdjustStockClick" Icon="Edit" Label="&#x624B;&#x52A8;&#x8C03;&#x6574;" />
-                                </CommandBar>
-                            </Grid>
-
-                            <Grid Grid.Row="1" Margin="0,16,0,0" ColumnSpacing="12" RowSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
-                                    <TextBlock Opacity="0.72" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;" />
-                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryStockText, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
-                                    <TextBlock Opacity="0.72" Text="&#x6536;&#x8D2D;&#x4EF7;" />
-                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryBuyPriceText, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
-                                    <TextBlock Opacity="0.72" Text="&#x5356;&#x4EF7;" />
-                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategorySellPriceText, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
-                                    <TextBlock Opacity="0.72" Text="&#x5E93;&#x5B58;&#x6210;&#x672C;" />
-                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryInventoryCostText, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
-                                    <TextBlock Opacity="0.72" Text="&#x5355;&#x4EF7;&#x4EF7;&#x5DEE;" />
-                                    <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryPriceSpreadText, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Row="1" Grid.Column="2" Spacing="4">
-                                    <TextBlock Opacity="0.72" Text="&#x6700;&#x540E;&#x6D41;&#x6C34;" />
-                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryLastActivityText, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
-                                    <TextBlock Opacity="0.72" Text="&#x6700;&#x540E;&#x76D8;&#x70B9;" />
-                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryLastAuditText, Mode=OneWay}" />
-                                </StackPanel>
-                            </Grid>
-                        </Grid>
-
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            Opacity="0.72"
-                            Text="&#x8BF7;&#x5148;&#x4ECE;&#x5DE6;&#x4FA7;&#x9009;&#x62E9;&#x4E00;&#x4E2A;&#x5206;&#x7C7B;&#x3002;"
-                            VerticalAlignment="Center"
-                            Visibility="{x:Bind ViewModel.NoSelectionVisibility, Mode=OneWay}" />
-                    </Grid>
-                </Border>
-
-                <Border Grid.Row="1" Style="{StaticResource CardSurfaceStyle}">
-                    <Grid RowSpacing="12">
+                <Border Grid.Column="0" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                    <Grid RowSpacing="16">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
@@ -238,180 +86,420 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="0" Style="{StaticResource SectionTitleTextStyle}" Text="&#x5F85;&#x8865;&#x8D27;&#x5206;&#x7C7B;" />
-                            <TextBlock Grid.Column="1" Opacity="0.72" Text="{x:Bind ViewModel.LowStockTaskSummaryText, Mode=OneWay}" VerticalAlignment="Center" />
+                            <TextBox
+                                x:Name="SearchTextBox"
+                                Grid.Column="0"
+                                PlaceholderText="&#x641C;&#x7D22;&#x5206;&#x7C7B;"
+                                TextChanged="OnSearchTextChanged" />
+
+                            <ComboBox
+                                Grid.Column="1"
+                                ItemsSource="{x:Bind ViewModel.Filters, Mode=OneWay}"
+                                MinWidth="150"
+                                SelectedItem="{x:Bind ViewModel.SelectedFilter, Mode=TwoWay}"
+                                SelectionChanged="OnFilterSelectionChanged" />
+
+                            <Button Grid.Column="2" Click="OnRefreshClick" Content="&#x5237;&#x65B0;" />
                         </Grid>
 
                         <Grid Grid.Row="1">
                             <ListView
-                                ItemsSource="{x:Bind ViewModel.LowStockTasks, Mode=OneWay}"
-                                MaxHeight="220"
-                                SelectionMode="None">
+                                ItemsSource="{x:Bind ViewModel.Categories, Mode=OneWay}"
+                                SelectedItem="{x:Bind ViewModel.SelectedCategory, Mode=TwoWay}"
+                                SelectionChanged="OnCategorySelectionChanged"
+                                SelectionMode="Single">
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Margin" Value="0,0,0,10" />
+                                    </Style>
+                                </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="models:StockCategoryItemModel">
-                                        <Grid Padding="0,10" ColumnSpacing="12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource WorkbenchRecordCardStyle}" Opacity="{x:Bind ItemOpacity}">
+                                            <Grid ColumnSpacing="12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
 
-                                            <StackPanel Grid.Column="0" Spacing="4">
-                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
-                                                <TextBlock Opacity="0.72" Text="{x:Bind RestockHintText}" />
-                                                <TextBlock Opacity="0.72" Text="{x:Bind LastActivityText}" />
-                                            </StackPanel>
+                                                <StackPanel Grid.Column="0" Spacing="4">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Style="{StaticResource ListTitleTextStyle}" Text="{x:Bind Name}" />
+                                                        <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind HealthText}" />
+                                                    </StackPanel>
+                                                    <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind PriceBucketSummaryText}" />
+                                                    <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind ActivitySummaryText}" />
+                                                    <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind LastActivityText}" />
+                                                </StackPanel>
 
-                                            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="8">
-                                                <TextBlock
-                                                    FontWeight="SemiBold"
-                                                    HorizontalAlignment="Right"
-                                                    Text="{x:Bind DisplayStockText}" />
-                                                <Button
-                                                    Click="OnQuickRestockClick"
-                                                    Content="&#x8865;&#x81F3;&#x5EFA;&#x8BAE;&#x503C;"
-                                                    HorizontalAlignment="Right"
-                                                    Tag="{x:Bind}" />
-                                            </StackPanel>
-                                        </Grid>
+                                                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <TextBlock
+                                                        HorizontalAlignment="Right"
+                                                        Style="{StaticResource DetailMetricValueTextStyle}"
+                                                        Text="{x:Bind DisplayStockText}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
 
                             <TextBlock
                                 HorizontalAlignment="Center"
-                                Opacity="0.72"
-                                Text="&#x5F53;&#x524D;&#x6CA1;&#x6709;&#x9700;&#x8981;&#x7ACB;&#x5373;&#x8865;&#x8D27;&#x7684;&#x5206;&#x7C7B;&#x3002;"
                                 VerticalAlignment="Center"
-                                Visibility="{x:Bind ViewModel.LowStockTasksEmptyVisibility, Mode=OneWay}" />
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="&#x5F53;&#x524D;&#x7B5B;&#x9009;&#x4E0B;&#x6CA1;&#x6709;&#x5339;&#x914D;&#x7684;&#x5206;&#x7C7B;&#x3002;"
+                                Visibility="{x:Bind ViewModel.EmptyStateVisibility, Mode=OneWay}" />
                         </Grid>
                     </Grid>
                 </Border>
 
-                <Grid Grid.Row="2" ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <Grid Grid.Column="1" RowSpacing="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                    <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
-                        <Grid RowSpacing="12">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                        <Grid>
+                            <Grid Visibility="{x:Bind ViewModel.DetailVisibility, Mode=OneWay}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind ViewModel.AuditSectionTitle, Mode=OneWay}" />
+                                <Grid Grid.Row="0" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                            <Grid Grid.Row="1">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="SELECTED CATEGORY" />
+                                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryName, Mode=OneWay}" />
+                                        <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryActivitySummaryText, Mode=OneWay}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                                        <Button Click="OnAuditStockClick" Content="&#x76D8;&#x70B9;&#x767B;&#x8BB0;" />
+                                        <Button Click="OnAdjustStockClick" Content="&#x624B;&#x52A8;&#x8C03;&#x6574;" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Grid.Row="1" Margin="0,16,0,0" ColumnSpacing="12" RowSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;" />
+                                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryStockText, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x53C2;&#x8003;&#x8FDB;&#x4EF7;" />
+                                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryBuyPriceText, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x7EDF;&#x4E00;&#x5356;&#x4EF7;" />
+                                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategorySellPriceText, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5E93;&#x5B58;&#x6210;&#x672C;" />
+                                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryInventoryCostText, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x8FDB;&#x4EF7;&#x5206;&#x5C42;" />
+                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryPriceBucketSummaryText, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x9884;&#x8BA1;&#x51C0;&#x5229;&#x6DA6;" />
+                                            <TextBlock
+                                                Style="{StaticResource DetailMetricValueTextStyle}"
+                                                Foreground="{StaticResource BrandBrush}"
+                                                Text="{x:Bind ViewModel.SelectedCategoryProjectedNetProfitText, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x6700;&#x540E;&#x6D41;&#x6C34;" />
+                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryLastActivityText, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x6700;&#x540E;&#x76D8;&#x70B9;" />
+                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.SelectedCategoryLastAuditText, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
+                                <StackPanel Grid.Row="2" Margin="0,20,0,0" Spacing="12">
+                                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x5F53;&#x524D;&#x8FDB;&#x4EF7;&#x5206;&#x5C42;" />
+                                    <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind ViewModel.SelectedCategoryPriceBucketSummaryText, Mode=OneWay}" />
+
+                                    <ListView
+                                        ItemsSource="{x:Bind ViewModel.SelectedCategoryPriceBuckets, Mode=OneWay}"
+                                        MaxHeight="240"
+                                        SelectionMode="None">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="Padding" Value="0" />
+                                                <Setter Property="Margin" Value="0,0,0,10" />
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:CategoryPriceBucketModel">
+                                                <Border Style="{StaticResource WorkbenchRecordCardStyle}">
+                                                    <StackPanel Spacing="10">
+                                                        <Grid ColumnSpacing="12">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Style="{StaticResource ListTitleTextStyle}" Text="{x:Bind UnitPriceText}" />
+                                                            <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{x:Bind QuantityText}" />
+                                                            <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="{x:Bind TotalCostText}" />
+                                                            <TextBlock Grid.Column="3" Foreground="{StaticResource BrandBrush}" FontWeight="SemiBold" Text="{x:Bind ProjectedNetProfitText}" />
+                                                        </Grid>
+                                                        <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind SourceText}" />
+                                                        <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind LastInboundText}" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                        Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;&#x6CA1;&#x6709;&#x53EF;&#x663E;&#x793A;&#x7684;&#x8FDB;&#x4EF7;&#x5206;&#x5C42;&#x3002;"
+                                        Visibility="{x:Bind ViewModel.SelectedCategoryPriceBucketsEmptyVisibility, Mode=OneWay}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="&#x8BF7;&#x5148;&#x4ECE;&#x5DE6;&#x4FA7;&#x9009;&#x62E9;&#x4E00;&#x4E2A;&#x5206;&#x7C7B;&#x3002;"
+                                Visibility="{x:Bind ViewModel.NoSelectionVisibility, Mode=OneWay}" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                        <StackPanel Spacing="12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Style="{StaticResource SectionTitleTextStyle}" Text="&#x5F85;&#x8865;&#x8D27;&#x5206;&#x7C7B;" />
+                                <TextBlock Grid.Column="1" Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind ViewModel.LowStockTaskSummaryText, Mode=OneWay}" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <ListView
+                                ItemsSource="{x:Bind ViewModel.LowStockTasks, Mode=OneWay}"
+                                MaxHeight="260"
+                                SelectionMode="None">
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Margin" Value="0,0,0,10" />
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:StockCategoryItemModel">
+                                        <Border Style="{StaticResource WorkbenchRecordCardStyle}">
+                                            <Grid ColumnSpacing="12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0" Spacing="4">
+                                                    <TextBlock Style="{StaticResource ListTitleTextStyle}" Text="{x:Bind Name}" />
+                                                    <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind RestockHintText}" />
+                                                    <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind PriceBucketSummaryText}" />
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="8">
+                                                    <TextBlock
+                                                        HorizontalAlignment="Right"
+                                                        Style="{StaticResource DetailMetricValueTextStyle}"
+                                                        Text="{x:Bind DisplayStockText}" />
+                                                    <Button
+                                                        Click="OnQuickRestockClick"
+                                                        Content="&#x8865;&#x81F3;&#x5EFA;&#x8BAE;&#x503C;"
+                                                        HorizontalAlignment="Right"
+                                                        Tag="{x:Bind}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="&#x5F53;&#x524D;&#x6CA1;&#x6709;&#x9700;&#x8981;&#x7ACB;&#x5373;&#x8865;&#x8D27;&#x7684;&#x5206;&#x7C7B;&#x3002;"
+                                Visibility="{x:Bind ViewModel.LowStockTasksEmptyVisibility, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Grid.Row="2" ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind ViewModel.AuditSectionTitle, Mode=OneWay}" />
                                 <ListView
                                     ItemsSource="{x:Bind ViewModel.RecentAudits, Mode=OneWay}"
                                     SelectionMode="None"
                                     Visibility="{x:Bind ViewModel.DetailVisibility, Mode=OneWay}">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                            <Setter Property="Padding" Value="0" />
+                                            <Setter Property="Margin" Value="0,0,0,10" />
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="models:StockAuditRecordModel">
-                                            <Grid Padding="0,10" ColumnSpacing="12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
+                                            <Border Style="{StaticResource WorkbenchRecordCardStyle}">
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
 
-                                                <StackPanel Grid.Column="0" Spacing="4">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <TextBlock FontWeight="SemiBold" Text="{x:Bind StatusText}" />
-                                                        <TextBlock Opacity="0.72" Text="{x:Bind TimestampText}" />
+                                                    <StackPanel Grid.Column="0" Spacing="4">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind StatusText}" />
+                                                            <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind TimestampText}" />
+                                                        </StackPanel>
+                                                        <TextBlock Text="{x:Bind BeforeAfterText}" />
+                                                        <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind NoteText}" />
                                                     </StackPanel>
-                                                    <TextBlock Text="{x:Bind BeforeAfterText}" />
-                                                    <TextBlock Opacity="0.72" Text="{x:Bind NoteText}" />
-                                                </StackPanel>
 
-                                                <TextBlock
-                                                    Grid.Column="1"
-                                                    Foreground="{StaticResource BrandBrush}"
-                                                    Text="{x:Bind DeltaText}"
-                                                    VerticalAlignment="Center" />
-                                            </Grid>
+                                                    <TextBlock
+                                                        Grid.Column="1"
+                                                        VerticalAlignment="Center"
+                                                        Foreground="{StaticResource BrandBrush}"
+                                                        FontWeight="SemiBold"
+                                                        Text="{x:Bind DeltaText}" />
+                                                </Grid>
+                                            </Border>
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
-
                                 <TextBlock
                                     HorizontalAlignment="Center"
-                                    Opacity="0.72"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource WorkbenchSupportingTextStyle}"
                                     Text="&#x8BE5;&#x5206;&#x7C7B;&#x8FD8;&#x6CA1;&#x6709;&#x76D8;&#x70B9;&#x8BB0;&#x5F55;&#x3002;"
-                                    VerticalAlignment="Center"
                                     Visibility="{x:Bind ViewModel.RecentAuditsEmptyVisibility, Mode=OneWay}" />
-
                                 <TextBlock
                                     HorizontalAlignment="Center"
-                                    Opacity="0.72"
-                                    Text="&#x9009;&#x4E2D;&#x5206;&#x7C7B;&#x540E;&#x8FD9;&#x91CC;&#x4F1A;&#x663E;&#x793A;&#x6700;&#x8FD1;&#x7684;&#x76D8;&#x70B9;&#x8BB0;&#x5F55;&#x3002;"
                                     VerticalAlignment="Center"
+                                    Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                    Text="&#x9009;&#x4E2D;&#x5206;&#x7C7B;&#x540E;&#x8FD9;&#x91CC;&#x4F1A;&#x663E;&#x793A;&#x6700;&#x8FD1;&#x7684;&#x76D8;&#x70B9;&#x8BB0;&#x5F55;&#x3002;"
                                     Visibility="{x:Bind ViewModel.NoSelectionVisibility, Mode=OneWay}" />
-                            </Grid>
-                        </Grid>
-                    </Border>
+                            </StackPanel>
+                        </Border>
 
-                    <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
-                        <Grid RowSpacing="12">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0" Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind ViewModel.AdjustmentSectionTitle, Mode=OneWay}" />
-
-                            <Grid Grid.Row="1">
+                        <Border Grid.Column="1" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{x:Bind ViewModel.AdjustmentSectionTitle, Mode=OneWay}" />
                                 <ListView
                                     ItemsSource="{x:Bind ViewModel.RecentAdjustments, Mode=OneWay}"
                                     SelectionMode="None"
                                     Visibility="{x:Bind ViewModel.DetailVisibility, Mode=OneWay}">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                            <Setter Property="Padding" Value="0" />
+                                            <Setter Property="Margin" Value="0,0,0,10" />
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
                                     <ListView.ItemTemplate>
                                         <DataTemplate x:DataType="models:StockAdjustmentRecordModel">
-                                            <Grid Padding="0,10" ColumnSpacing="12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
+                                            <Border Style="{StaticResource WorkbenchRecordCardStyle}">
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
 
-                                                <StackPanel Grid.Column="0" Spacing="4">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <TextBlock FontWeight="SemiBold" Text="{x:Bind DirectionText}" />
-                                                        <TextBlock Opacity="0.72" Text="{x:Bind TimestampText}" />
+                                                    <StackPanel Grid.Column="0" Spacing="4">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind DirectionText}" />
+                                                            <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind TimestampText}" />
+                                                        </StackPanel>
+                                                        <TextBlock Text="{x:Bind BeforeAfterText}" />
+                                                        <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind ReasonText}" />
                                                     </StackPanel>
-                                                    <TextBlock Text="{x:Bind BeforeAfterText}" />
-                                                    <TextBlock Opacity="0.72" Text="{x:Bind ReasonText}" />
-                                                </StackPanel>
 
-                                                <TextBlock
-                                                    Grid.Column="1"
-                                                    Foreground="{StaticResource BrandBrush}"
-                                                    Text="{x:Bind DeltaText}"
-                                                    VerticalAlignment="Center" />
-                                            </Grid>
+                                                    <TextBlock
+                                                        Grid.Column="1"
+                                                        VerticalAlignment="Center"
+                                                        Foreground="{StaticResource BrandBrush}"
+                                                        FontWeight="SemiBold"
+                                                        Text="{x:Bind DeltaText}" />
+                                                </Grid>
+                                            </Border>
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
-
                                 <TextBlock
                                     HorizontalAlignment="Center"
-                                    Opacity="0.72"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource WorkbenchSupportingTextStyle}"
                                     Text="&#x8BE5;&#x5206;&#x7C7B;&#x8FD8;&#x6CA1;&#x6709;&#x624B;&#x52A8;&#x8C03;&#x6574;&#x8BB0;&#x5F55;&#x3002;"
-                                    VerticalAlignment="Center"
                                     Visibility="{x:Bind ViewModel.RecentAdjustmentsEmptyVisibility, Mode=OneWay}" />
-
                                 <TextBlock
                                     HorizontalAlignment="Center"
-                                    Opacity="0.72"
-                                    Text="&#x9009;&#x4E2D;&#x5206;&#x7C7B;&#x540E;&#x8FD9;&#x91CC;&#x4F1A;&#x663E;&#x793A;&#x6700;&#x8FD1;&#x7684;&#x624B;&#x52A8;&#x5E93;&#x5B58;&#x8C03;&#x6574;&#x3002;"
                                     VerticalAlignment="Center"
+                                    Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                    Text="&#x9009;&#x4E2D;&#x5206;&#x7C7B;&#x540E;&#x8FD9;&#x91CC;&#x4F1A;&#x663E;&#x793A;&#x6700;&#x8FD1;&#x7684;&#x624B;&#x52A8;&#x8C03;&#x6574;&#x8BB0;&#x5F55;&#x3002;"
                                     Visibility="{x:Bind ViewModel.NoSelectionVisibility, Mode=OneWay}" />
-                            </Grid>
-                        </Grid>
-                    </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                 </Grid>
             </Grid>
-        </Grid>
-    </Grid>
+        </StackPanel>
+    </ScrollViewer>
 </Page>

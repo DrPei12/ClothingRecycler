@@ -4,6 +4,16 @@ namespace ClothingRecycler.Desktop.Models
     {
         public CategoryModel Category { get; init; } = new();
 
+        public double CalculatedInventoryCost { get; init; }
+
+        public double CalculatedProjectedNetProfit { get; init; }
+
+        public int PriceBucketCount { get; init; }
+
+        public string BuyPriceRangeText { get; init; } = "¥0";
+
+        public string PriceBucketSummaryText { get; init; } = "暂无库存";
+
         public int InboundRecordCount { get; init; }
 
         public int OutboundRecordCount { get; init; }
@@ -40,9 +50,9 @@ namespace ClothingRecycler.Desktop.Models
 
         public string SellPriceText => Category.SellPriceText;
 
-        public string InventoryCostText => Category.InventoryCostText;
+        public string InventoryCostText => Currency(CalculatedInventoryCost);
 
-        public string PriceSpreadText => Currency(Math.Round(Category.SellPrice - Category.BuyPrice, 2));
+        public string ProjectedNetProfitText => Currency(CalculatedProjectedNetProfit);
 
         public double LowStockThreshold => Category.UnitType == WeightUnit.Piece ? 10 : 5;
 
@@ -52,30 +62,29 @@ namespace ClothingRecycler.Desktop.Models
 
         public bool CanQuickRestock => !IsArchived && IsLowStock;
 
-        public string LastActivityText => LastActivityAt?.ToLocalTime().ToString("MM-dd HH:mm") ?? "\u6682\u65E0\u6D41\u6C34";
+        public string LastActivityText => LastActivityAt?.ToLocalTime().ToString("MM-dd HH:mm") ?? "暂无流水";
 
-        public string LastInboundText => LastInboundAt?.ToLocalTime().ToString("MM-dd HH:mm") ?? "\u6682\u65E0";
+        public string LastInboundText => LastInboundAt?.ToLocalTime().ToString("MM-dd HH:mm") ?? "暂无";
 
-        public string LastOutboundText => LastOutboundAt?.ToLocalTime().ToString("MM-dd HH:mm") ?? "\u6682\u65E0";
+        public string LastOutboundText => LastOutboundAt?.ToLocalTime().ToString("MM-dd HH:mm") ?? "暂无";
 
-        public string ActivitySummaryText =>
-            $"\u5165\u5E93 {InboundRecordCount} \u7B14 / \u51FA\u5E93 {OutboundRecordCount} \u7B14";
+        public string ActivitySummaryText => $"入库 {InboundRecordCount} 笔 / 出库 {OutboundRecordCount} 笔";
 
         public string SuggestedTargetText => QuantityText(SuggestedTargetQuantity);
 
         public string SuggestedRestockText => QuantityText(SuggestedRestockQuantity);
 
         public string RestockHintText => IsArchived
-            ? "\u5DF2\u5F52\u6863\uFF0C\u4E0D\u53C2\u4E0E\u8865\u8D27"
+            ? "已归档，不参与补货"
             : IsLowStock
-                ? $"\u5EFA\u8BAE\u8865 {SuggestedRestockText}\uFF0C\u8865\u81F3 {SuggestedTargetText}"
-                : "\u5F53\u524D\u5E93\u5B58\u5145\u8DB3";
+                ? $"建议补 {SuggestedRestockText}，补至 {SuggestedTargetText}"
+                : "当前库存充足";
 
         public string HealthText => IsArchived
-            ? "\u5DF2\u5F52\u6863"
+            ? "已归档"
             : IsLowStock
-                ? "\u4F4E\u5E93\u5B58"
-                : "\u5E93\u5B58\u6B63\u5E38";
+                ? "低库存"
+                : "库存正常";
 
         public double ItemOpacity => IsArchived ? 0.72 : 1.0;
 
@@ -87,6 +96,6 @@ namespace ClothingRecycler.Desktop.Models
             ? $"{Math.Round(quantity):0} {UnitLabel}"
             : $"{quantity:0.##} {UnitLabel}";
 
-        private static string Currency(double value) => $"\u00A5{value:0.##}";
+        private static string Currency(double value) => $"¥{value:0.##}";
     }
 }

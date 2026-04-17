@@ -8,49 +8,83 @@
     xmlns:models="using:ClothingRecycler.Desktop.Models"
     mc:Ignorable="d">
     <ScrollViewer>
-        <StackPanel Padding="24" Spacing="16">
-            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="&#x7ECF;&#x8425;&#x6982;&#x89C8;" />
-            <TextBlock
-                Style="{StaticResource MutedTextStyle}"
-                Text="&#x672C;&#x5730;&#x684C;&#x9762;&#x7248;&#x7B2C;&#x4E00;&#x9636;&#x6BB5;&#x5DF2;&#x7ECF;&#x63A5;&#x5165;&#x4EEA;&#x8868;&#x76D8;&#x3001;&#x5165;&#x5E93;&#x3001;&#x5E93;&#x5B58;&#x548C;&#x5206;&#x7C7B;&#x7BA1;&#x7406;&#x3002;" />
+        <StackPanel MaxWidth="1680" Padding="32,28,32,40" Spacing="24">
+            <Border Style="{StaticResource WorkbenchHeroSurfaceStyle}">
+                <Grid>
+                    <Border
+                        Height="5"
+                        VerticalAlignment="Top"
+                        Background="{StaticResource BrandBrush}"
+                        CornerRadius="28,28,0,0" />
 
-            <Grid ColumnSpacing="16" RowSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+                    <Grid Padding="28" ColumnSpacing="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="1.2*" />
+                        </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4ECA;&#x65E5;&#x5165;&#x5E93;&#x91D1;&#x989D;" />
-                        <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TodayInboundAmount, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
+                        <StackPanel Spacing="14">
+                            <TextBlock Style="{StaticResource WorkbenchEyebrowTextStyle}" Text="DASHBOARD" />
+                            <TextBlock
+                                Style="{StaticResource WorkbenchHeroTitleTextStyle}"
+                                Text="&#x5148;&#x770B;&#x4ECA;&#x5929;&#x7684;&#x8FDB;&#x51FA;&#x548C;&#x5E93;&#x5B58;&#x7ED3;&#x679C;&#xFF0C;&#x518D;&#x51B3;&#x5B9A;&#x4ECA;&#x5929;&#x8981;&#x5904;&#x7406;&#x54EA;&#x4E9B;&#x4E8B;&#x3002;" />
+                            <TextBlock
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="&#x8FD9;&#x91CC;&#x53EA;&#x4FDD;&#x7559;&#x7ECF;&#x8425;&#x6700;&#x5E38;&#x770B;&#x7684;&#x51E0;&#x4E2A;&#x7ED3;&#x679C;&#xFF1A;&#x4ECA;&#x65E5;&#x8FDB;&#x51FA;&#x91D1;&#x989D;&#x3001;&#x5E93;&#x5B58;&#x6210;&#x672C;&#x3001;&#x51C0;&#x5229;&#x6DA6;&#x53CA;&#x5F85;&#x5904;&#x7406;&#x5206;&#x7C7B;&#x3002;" />
+                        </StackPanel>
 
-                <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4ECA;&#x65E5;&#x51FA;&#x5E93;&#x91D1;&#x989D;" />
-                        <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TodayOutboundAmount, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
+                        <Grid
+                            Grid.Column="1"
+                            ColumnSpacing="12"
+                            RowSpacing="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;&#x6210;&#x672C;" />
-                        <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TotalInventoryCost, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
+                            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4ECA;&#x65E5;&#x5165;&#x5E93;&#x91D1;&#x989D;" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TodayInboundAmount, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
 
-                <Border Grid.Column="3" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5F53;&#x524D;&#x9884;&#x8BA1;&#x6536;&#x5165;" />
-                        <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Foreground="{StaticResource BrandBrush}" Text="{x:Bind ViewModel.ForecastRevenue, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
+                            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4ECA;&#x65E5;&#x51FA;&#x5E93;&#x91D1;&#x989D;" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TodayOutboundAmount, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
 
-            </Grid>
+                            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;&#x6210;&#x672C;" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TotalInventoryCost, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Button
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Click="OnProfitFormulaClick"
+                                Style="{StaticResource CardActionButtonStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5F53;&#x524D;&#x9884;&#x8BA1;&#x6536;&#x5165;&#xFF08;&#x51C0;&#x5229;&#x6DA6;&#xFF09;" />
+                                    <TextBlock
+                                        Style="{StaticResource HeroMetricValueTextStyle}"
+                                        Foreground="{StaticResource BrandBrush}"
+                                        Text="{x:Bind ViewModel.ProjectedNetProfit, Mode=OneWay}" />
+                                    <TextBlock Opacity="0.72" Text="&#x67E5;&#x770B;&#x8BA1;&#x7B97;&#x516C;&#x5F0F;" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
 
             <InfoBar
                 IsClosable="False"
@@ -60,35 +94,76 @@
 
             <Grid ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="2.2*" />
+                    <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="12">
-                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;&#x6392;&#x884C;" />
+                <Border Grid.Column="0" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                    <StackPanel Spacing="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="PROFIT RANKING" />
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Style="{StaticResource SectionTitleTextStyle}" Text="&#x9884;&#x8BA1;&#x6536;&#x5165;&#xFF08;&#x51C0;&#x5229;&#x6DA6;&#xFF09;&#x6392;&#x884C;" />
+                                    <Border
+                                        Grid.Column="1"
+                                        Style="{StaticResource WorkbenchHelpBadgeStyle}"
+                                        ToolTipService.ToolTip="&#x6309;&#x5F53;&#x524D;&#x5E93;&#x5B58;&#x3001;&#x7EDF;&#x4E00;&#x5356;&#x4EF7;&#x548C;&#x6210;&#x672C;&#x53E3;&#x5F84;&#x8BA1;&#x7B97;&#x6BCF;&#x4E2A;&#x5206;&#x7C7B;&#x7684;&#x9884;&#x8BA1;&#x51C0;&#x5229;&#x6DA6;&#x3002;">
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="13"
+                                            FontWeight="SemiBold"
+                                            Opacity="0.72"
+                                            Text="?" />
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
                         <ListView
                             IsItemClickEnabled="False"
                             ItemsSource="{x:Bind ViewModel.TopCategories, Mode=OneWay}"
                             SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:CategoryModel">
-                                    <Grid Padding="0,10">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock Style="{StaticResource CompactListTitleTextStyle}" Text="{x:Bind Name}" />
-                                            <TextBlock Opacity="0.72" Text="{x:Bind DisplayStockText}" />
-                                        </StackPanel>
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            Style="{StaticResource CompactListTitleTextStyle}"
-                                            Foreground="{StaticResource BrandBrush}"
-                                            Text="{x:Bind ForecastRevenueText}"
-                                            VerticalAlignment="Center" />
-                                    </Grid>
+                                    <Border Style="{StaticResource WorkbenchRecordCardStyle}">
+                                        <Grid ColumnSpacing="16">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" Spacing="4">
+                                                <TextBlock Style="{StaticResource ListTitleTextStyle}" Text="{x:Bind Name}" />
+                                                <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind DisplayStockText}" />
+                                            </StackPanel>
+
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Foreground="{StaticResource BrandBrush}"
+                                                Style="{StaticResource DetailMetricValueTextStyle}"
+                                                Text="{x:Bind ForecastNetProfitText}" />
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
@@ -96,17 +171,24 @@
                 </Border>
 
                 <StackPanel Grid.Column="1" Spacing="16">
-                    <Border Style="{StaticResource CardSurfaceStyle}">
-                        <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x5206;&#x7C7B;&#x603B;&#x6570;" />
-                            <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCount, Mode=OneWay}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource CardSurfaceStyle}">
-                        <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="&#x4F4E;&#x5E93;&#x5B58;&#x5206;&#x7C7B;" />
-                            <TextBlock Style="{StaticResource MetricValueTextStyle}" Foreground="{StaticResource DangerBrush}" Text="{x:Bind ViewModel.LowStockCount, Mode=OneWay}" />
+                    <Border Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                        <StackPanel Spacing="14">
+                            <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="OVERVIEW" />
+                            <Border Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5206;&#x7C7B;&#x603B;&#x6570;" />
+                                    <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCount, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4F4E;&#x5E93;&#x5B58;&#x5206;&#x7C7B;" />
+                                    <TextBlock
+                                        Style="{StaticResource MetricValueTextStyle}"
+                                        Foreground="{StaticResource DangerBrush}"
+                                        Text="{x:Bind ViewModel.LowStockCount, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
                 </StackPanel>

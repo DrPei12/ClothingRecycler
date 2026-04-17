@@ -5,6 +5,7 @@ namespace ClothingRecycler.Desktop.ViewModels
         private readonly record struct OutboundDraftState(
             long? SelectedCustomerId,
             string NewCustomerName,
+            WeightUnit InputUnitType,
             double Quantity,
             double UnitPrice);
 
@@ -67,10 +68,11 @@ namespace ClothingRecycler.Desktop.ViewModels
                     : CategoryEntries.ToDictionary(
                         entry => entry.CategoryId,
                         entry => new OutboundDraftState(
-                            entry.SelectedCustomer?.Id,
-                            entry.NewCustomerName,
-                            entry.Quantity,
-                            entry.UnitPrice));
+                        entry.SelectedCustomer?.Id,
+                        entry.NewCustomerName,
+                        entry.SelectedInputUnit,
+                        entry.Quantity,
+                        entry.UnitPrice));
 
                 var categories = await _databaseService.GetActiveCategoriesAsync();
                 var customers = await _databaseService.GetCustomersAsync();
@@ -140,7 +142,12 @@ namespace ClothingRecycler.Desktop.ViewModels
             }
 
             var customerName = entry.ResolvedCustomerName;
-            var confirmation = await _databaseService.AddOutboundRecordAsync(entry.CategoryId, normalizedQuantity, entry.UnitPrice, customerName);
+            var confirmation = await _databaseService.AddOutboundRecordAsync(
+                entry.CategoryId,
+                normalizedQuantity,
+                entry.UnitPrice,
+                customerName,
+                entry.SelectedInputUnit);
 
             StatusMessage = $"{entry.CategoryName} \u5DF2\u5B8C\u6210\u51FA\u5E93\uFF0C\u5E93\u5B58\u5DF2\u540C\u6B65\u6263\u51CF\u3002";
 
@@ -191,8 +198,7 @@ namespace ClothingRecycler.Desktop.ViewModels
 
                     var suggestedUnitPrice = GetRememberedPrice(entry) ?? category.SellPrice;
                     entry.ApplySuggestedUnitPrice(suggestedUnitPrice);
-                    entry.Quantity = draft.Quantity;
-                    entry.UnitPrice = draft.UnitPrice > 0 ? draft.UnitPrice : suggestedUnitPrice;
+                    entry.RestoreDraft(draft.Quantity, draft.UnitPrice > 0 ? draft.UnitPrice : suggestedUnitPrice, draft.InputUnitType);
                     entry.IsExpanded = expandedCategoryId == category.Id;
                 }
                 else

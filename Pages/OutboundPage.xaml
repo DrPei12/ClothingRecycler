@@ -9,246 +9,360 @@
     xmlns:models="using:ClothingRecycler.Desktop.Models"
     mc:Ignorable="d">
     <ScrollViewer>
-        <StackPanel Padding="24" Spacing="16">
-            <TextBlock Style="{StaticResource PageTitleTextStyle}" Text="出库工作台" />
-            <TextBlock Style="{StaticResource MutedTextStyle}" Text="按“单分类出库”的业务方式展示全部类别。先看库存和计量方式，点开某个类别后再填写客户、出库量和出库单价。" />
+        <StackPanel MaxWidth="1680" Padding="32,28,32,40" Spacing="24">
+            <Border Style="{StaticResource WorkbenchHeroSurfaceStyle}">
+                <Grid>
+                    <Border
+                        Height="5"
+                        VerticalAlignment="Top"
+                        Background="{StaticResource BrandBrush}"
+                        CornerRadius="28,28,0,0" />
 
-            <Grid ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+                    <Grid Padding="28" ColumnSpacing="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="1.2*" />
+                        </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="今日出库金额" />
-                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.TodayOutboundAmount, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
+                        <StackPanel Spacing="14">
+                            <TextBlock Style="{StaticResource WorkbenchEyebrowTextStyle}" Text="OUTBOUND WORKSPACE" />
+                            <TextBlock
+                                Style="{StaticResource WorkbenchHeroTitleTextStyle}"
+                                Text="&#x5148;&#x770B;&#x6BCF;&#x4E2A;&#x5206;&#x7C7B;&#x7684;&#x5E93;&#x5B58;&#x72B6;&#x6001;&#xFF0C;&#x518D;&#x5C55;&#x5F00;&#x672C;&#x6B21;&#x8981;&#x51FA;&#x5E93;&#x7684;&#x90A3;&#x4E00;&#x7C7B;&#x3002;" />
+                            <TextBlock
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="&#x51FA;&#x5E93;&#x9875;&#x6309;&#x201C;&#x4E00;&#x7C7B;&#x4E00;&#x5355;&#x201D;&#x7684;&#x60F3;&#x6CD5;&#x6765;&#x7EC4;&#x7EC7;&#x3002;&#x4F60;&#x53EF;&#x4EE5;&#x5148;&#x5FEB;&#x901F;&#x626B;&#x89C6;&#x5E93;&#x5B58;&#xFF0C;&#x518D;&#x6253;&#x5F00;&#x9700;&#x8981;&#x586B;&#x5199;&#x7684;&#x5206;&#x7C7B;&#x3002;" />
+                        </StackPanel>
 
-                <Border Grid.Column="1" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="可出库分类数" />
-                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
+                        <Grid
+                            Grid.Column="1"
+                            ColumnSpacing="12"
+                            RowSpacing="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="2" Style="{StaticResource CardSurfaceStyle}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="最近记录数" />
-                        <TextBlock Style="{StaticResource MetricValueTextStyle}" Text="{x:Bind ViewModel.RecentRecordCountText, Mode=OneWay}" />
-                    </StackPanel>
-                </Border>
-            </Grid>
+                            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x4ECA;&#x65E5;&#x51FA;&#x5E93;&#x91D1;&#x989D;" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.TodayOutboundAmount, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x53EF;&#x51FA;&#x5E93;&#x5206;&#x7C7B;&#x6570;" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.CategoryCountText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource WorkbenchMetricTileStyle}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x6700;&#x8FD1;&#x51FA;&#x5E93;&#x8BB0;&#x5F55;&#x6570;" />
+                                    <TextBlock Style="{StaticResource HeroMetricValueTextStyle}" Text="{x:Bind ViewModel.RecentRecordCountText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
 
             <TextBlock
                 HorizontalAlignment="Center"
-                Opacity="0.72"
-                Text="还没有任何分类。请先到设置页创建衣物分类后再做出库。"
+                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                Text="&#x8FD8;&#x6CA1;&#x6709;&#x4EFB;&#x4F55;&#x53EF;&#x51FA;&#x5E93;&#x7684;&#x5206;&#x7C7B;&#x3002;&#x8BF7;&#x5148;&#x5728;&#x8BBE;&#x7F6E;&#x9875;&#x521B;&#x5EFA;&#x5206;&#x7C7B;&#x3002;"
                 Visibility="{x:Bind ViewModel.EmptyStateVisibility, Mode=OneWay}" />
 
-            <Border Style="{StaticResource CardSurfaceStyle}" Visibility="{x:Bind ViewModel.FormVisibility, Mode=OneWay}">
-                <StackPanel Spacing="16">
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+            <Grid ColumnSpacing="16" Visibility="{x:Bind ViewModel.FormVisibility, Mode=OneWay}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
 
-                        <StackPanel Spacing="6">
-                            <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="按类别快捷出库" />
-                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="每次展开一个类别进行填写，更适合“一家只卖一种”的出库场景。" TextWrapping="WrapWholeWords" />
-                        </StackPanel>
+                <Border Grid.Column="0" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                    <StackPanel Spacing="18">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <Button
-                            Grid.Column="1"
-                            Click="OnRefreshClick"
-                            Content="刷新分类"
-                            VerticalAlignment="Top" />
-                    </Grid>
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="CATEGORY BOARD" />
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Style="{StaticResource SectionTitleTextStyle}" Text="&#x6309;&#x5206;&#x7C7B;&#x5FEB;&#x6377;&#x51FA;&#x5E93;" />
+                                    <Border
+                                        Grid.Column="1"
+                                        Style="{StaticResource WorkbenchHelpBadgeStyle}"
+                                        ToolTipService.ToolTip="&#x70B9;&#x51FB;&#x4EFB;&#x610F;&#x5206;&#x7C7B;&#x5361;&#x7247;&#x53EF;&#x5C55;&#x5F00;&#x7F16;&#x8F91;&#x533A;&#x3002;&#x6BCF;&#x6B21;&#x53EA;&#x805A;&#x7126;&#x4E00;&#x4E2A;&#x5206;&#x7C7B;&#xFF0C;&#x9002;&#x5408;&#x4E00;&#x5BB6;&#x53EA;&#x5356;&#x4E00;&#x79CD;&#x8D27;&#x7684;&#x51FA;&#x5E93;&#x573A;&#x666F;&#x3002;">
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="13"
+                                            FontWeight="SemiBold"
+                                            Opacity="0.72"
+                                            Text="?" />
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
 
-                    <ItemsControl ItemsSource="{x:Bind ViewModel.CategoryEntries, Mode=OneWay}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:OutboundCategoryDraftModel">
-                                <Border Margin="0,0,0,12" Style="{StaticResource CardSurfaceStyle}">
-                                    <StackPanel Spacing="12">
-                                        <Button
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Click="OnCategoryEntryHeaderClick"
-                                            HorizontalContentAlignment="Stretch"
-                                            Padding="0">
-                                            <Grid ColumnSpacing="12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="2*" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
+                            <Button
+                                Grid.Column="1"
+                                Click="OnRefreshClick"
+                                Content="&#x5237;&#x65B0;&#x5206;&#x7C7B;"
+                                VerticalAlignment="Top" />
+                        </Grid>
 
-                                                <StackPanel Grid.Column="0" Spacing="4">
-                                                    <TextBlock Style="{StaticResource ListTitleTextStyle}" Text="{x:Bind CategoryName}" />
-                                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="点击展开填写客户、数量和售价" />
-                                                </StackPanel>
-
-                                                <StackPanel Grid.Column="1" Spacing="4">
-                                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="当前库存" />
-                                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind CurrentStockText}" />
-                                                </StackPanel>
-
-                                                <StackPanel Grid.Column="2" Spacing="4">
-                                                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="计量方式" />
-                                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind UnitLabel}" />
-                                                </StackPanel>
-
-                                                <TextBlock
-                                                    Grid.Column="3"
-                                                    FontWeight="SemiBold"
-                                                    Opacity="0.72"
-                                                    Text="{x:Bind ExpandActionText, Mode=OneWay}"
-                                                    VerticalAlignment="Center" />
-                                            </Grid>
-                                        </Button>
-
-                                        <StackPanel Spacing="12" Visibility="{x:Bind ExpandedVisibility, Mode=OneWay}">
-                                            <Grid ColumnSpacing="12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-
-                                                <ComboBox
-                                                    Grid.Column="0"
-                                                    DisplayMemberPath="DisplayName"
-                                                    Header="已有客户（可选）"
-                                                    ItemsSource="{Binding ElementName=RootPage, Path=ViewModel.Customers}"
-                                                    PlaceholderText="不选则按匿名出库"
-                                                    SelectedItem="{x:Bind SelectedCustomer, Mode=TwoWay}" />
-
-                                                <TextBox
-                                                    Grid.Column="1"
-                                                    Header="新客户名称（可选）"
-                                                    PlaceholderText="填写后会优先作为本次交易客户"
-                                                    Text="{x:Bind NewCustomerName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                            </Grid>
-
-                                            <Grid ColumnSpacing="12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-
-                                                <NumberBox
-                                                    Grid.Column="0"
-                                                    Header="出库数量"
-                                                    SmallChange="1"
-                                                    Value="{x:Bind Quantity, Mode=TwoWay}" />
-
-                                                <NumberBox
-                                                    Grid.Column="1"
-                                                    Header="出库单价"
-                                                    Minimum="0.01"
-                                                    SmallChange="1"
-                                                    Value="{x:Bind UnitPrice, Mode=TwoWay}" />
-                                            </Grid>
-
-                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="{x:Bind CustomerHintText, Mode=OneWay}" TextWrapping="WrapWholeWords" />
-
-                                            <Border Style="{StaticResource SoftWarmPanelStyle}">
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.CategoryEntries, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:OutboundCategoryDraftModel">
+                                    <Border Margin="0,0,0,12" Style="{StaticResource WorkbenchRecordCardStyle}">
+                                        <StackPanel Spacing="14">
+                                            <Button
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Click="OnCategoryEntryHeaderClick"
+                                                HorizontalContentAlignment="Stretch"
+                                                Padding="0">
                                                 <Grid ColumnSpacing="16">
                                                     <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="1.2*" />
+                                                        <ColumnDefinition Width="2*" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0" Spacing="4">
+                                                        <TextBlock Style="{StaticResource ListTitleTextStyle}" Text="{x:Bind CategoryName}" />
+                                                        <TextBlock Style="{StaticResource WorkbenchSupportingTextStyle}" Text="{x:Bind CurrentStockText}" />
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="1" Spacing="4">
+                                                        <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x5F53;&#x524D;&#x5E93;&#x5B58;" />
+                                                        <TextBlock FontWeight="SemiBold" Text="{x:Bind CurrentStockText}" />
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="2" Spacing="4">
+                                                        <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x5E93;&#x5B58;&#x5355;&#x4F4D;" />
+                                                        <TextBlock FontWeight="SemiBold" Text="{x:Bind StockUnitLabel}" />
+                                                    </StackPanel>
+
+                                                    <TextBlock
+                                                        Grid.Column="3"
+                                                        VerticalAlignment="Center"
+                                                        FontWeight="SemiBold"
+                                                        Opacity="0.72"
+                                                        Text="{x:Bind ExpandActionText, Mode=OneWay}" />
+                                                </Grid>
+                                            </Button>
+
+                                            <StackPanel Spacing="14" Visibility="{x:Bind ExpandedVisibility, Mode=OneWay}">
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
 
-                                                    <StackPanel Grid.Column="0" Spacing="6">
-                                                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="实际出库客户" />
-                                                        <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind EffectiveCustomerText, Mode=OneWay}" />
+                                                    <Border Grid.Column="0" Style="{StaticResource WorkbenchInsetPanelStyle}">
+                                                        <StackPanel Spacing="8">
+                                                            <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x5DF2;&#x6709;&#x5BA2;&#x6237;&#xFF08;&#x53EF;&#x9009;&#xFF09;" />
+                                                            <ComboBox
+                                                                DisplayMemberPath="DisplayName"
+                                                                ItemsSource="{Binding ElementName=RootPage, Path=ViewModel.Customers}"
+                                                                PlaceholderText="&#x4E0D;&#x9009;&#x5219;&#x6309;&#x533F;&#x540D;&#x51FA;&#x5E93;"
+                                                                SelectedItem="{x:Bind SelectedCustomer, Mode=TwoWay}" />
+                                                        </StackPanel>
+                                                    </Border>
+
+                                                    <Border Grid.Column="1" Style="{StaticResource WorkbenchInsetPanelStyle}">
+                                                        <StackPanel Spacing="8">
+                                                            <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x65B0;&#x5BA2;&#x6237;&#x540D;&#x79F0;&#xFF08;&#x53EF;&#x9009;&#xFF09;" />
+                                                            <TextBox
+                                                                PlaceholderText="&#x586B;&#x5199;&#x540E;&#x4F1A;&#x4F18;&#x5148;&#x4F5C;&#x4E3A;&#x672C;&#x6B21;&#x4EA4;&#x6613;&#x5BA2;&#x6237;"
+                                                                Text="{x:Bind NewCustomerName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Grid>
+
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="0.85*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0" Spacing="8">
+                                                        <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x51FA;&#x5E93;&#x6570;&#x91CF;" />
+                                                        <NumberBox
+                                                            Height="44"
+                                                            SmallChange="1"
+                                                            SpinButtonPlacementMode="Compact"
+                                                            Value="{x:Bind Quantity, Mode=TwoWay}" />
                                                     </StackPanel>
 
-                                                    <StackPanel Grid.Column="1" Spacing="6">
-                                                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="建议售价" />
-                                                        <TextBlock FontWeight="SemiBold" Text="{x:Bind SuggestedPriceText, Mode=OneWay}" />
+                                                    <StackPanel Grid.Column="1" Spacing="8">
+                                                        <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x672C;&#x6B21;&#x5355;&#x4F4D;" />
+                                                        <ComboBox
+                                                            DisplayMemberPath="DisplayName"
+                                                            ItemsSource="{x:Bind InputUnitOptions, Mode=OneWay}"
+                                                            SelectedItem="{x:Bind SelectedInputUnitOption, Mode=TwoWay}" />
                                                     </StackPanel>
 
-                                                    <StackPanel Grid.Column="2" Spacing="6">
-                                                        <TextBlock Style="{StaticResource MutedTextStyle}" Text="本次总收入" />
-                                                        <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind TotalRevenueText, Mode=OneWay}" />
+                                                    <StackPanel Grid.Column="2" Spacing="8">
+                                                        <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x51FA;&#x5E93;&#x5355;&#x4EF7;" />
+                                                        <NumberBox
+                                                            Height="44"
+                                                            Minimum="0.01"
+                                                            SmallChange="1"
+                                                            SpinButtonPlacementMode="Compact"
+                                                            Value="{x:Bind UnitPrice, Mode=TwoWay}" />
                                                     </StackPanel>
                                                 </Grid>
-                                            </Border>
 
-                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="{x:Bind StockValidationText, Mode=OneWay}" TextWrapping="WrapWholeWords" />
+                                                <TextBlock
+                                                    Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                                    Text="{x:Bind CustomerHintText, Mode=OneWay}" />
 
-                                            <StackPanel Orientation="Horizontal" Spacing="12">
-                                                <Button Click="OnEntrySubmitClick" Content="确认出库" IsEnabled="{x:Bind CanSubmit, Mode=OneWay}" />
-                                                <Button Click="OnCategoryEntryHeaderClick" Content="收起" />
+                                                <Border Style="{StaticResource SoftWarmPanelStyle}">
+                                                    <Grid ColumnSpacing="16">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="1.2*" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <StackPanel Grid.Column="0" Spacing="6">
+                                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5B9E;&#x9645;&#x51FA;&#x5E93;&#x5BA2;&#x6237;" />
+                                                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind EffectiveCustomerText, Mode=OneWay}" />
+                                                        </StackPanel>
+
+                                                        <StackPanel Grid.Column="1" Spacing="6">
+                                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x5EFA;&#x8BAE;&#x5356;&#x4EF7;" />
+                                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind SuggestedPriceText, Mode=OneWay}" />
+                                                        </StackPanel>
+
+                                                        <StackPanel Grid.Column="2" Spacing="6">
+                                                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="&#x672C;&#x6B21;&#x603B;&#x6536;&#x5165;" />
+                                                            <TextBlock Style="{StaticResource DetailMetricValueTextStyle}" Text="{x:Bind TotalRevenueText, Mode=OneWay}" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+
+                                                <TextBlock
+                                                    Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                                    Text="{x:Bind StockValidationText, Mode=OneWay}" />
+
+                                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                                    <Button
+                                                        Click="OnEntrySubmitClick"
+                                                        Content="&#x786E;&#x8BA4;&#x51FA;&#x5E93;"
+                                                        IsEnabled="{x:Bind CanSubmit, Mode=OneWay}" />
+                                                    <Button Click="OnCategoryEntryHeaderClick" Content="&#x6536;&#x8D77;" />
+                                                </StackPanel>
                                             </StackPanel>
                                         </StackPanel>
-                                    </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource WorkbenchCanvasSurfaceStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="RECENT OUTBOUND" />
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Style="{StaticResource SectionTitleTextStyle}" Text="&#x6700;&#x8FD1;&#x51FA;&#x5E93;&#x8BB0;&#x5F55;" />
+                                <Border
+                                    Grid.Column="1"
+                                    Style="{StaticResource WorkbenchHelpBadgeStyle}"
+                                    ToolTipService.ToolTip="&#x8FD9;&#x91CC;&#x663E;&#x793A;&#x6700;&#x8FD1;&#x7684;&#x51FA;&#x5E93;&#x8BB0;&#x5F55;&#xFF0C;&#x65B9;&#x4FBF;&#x5F55;&#x5B8C;&#x540E;&#x76F4;&#x63A5;&#x56DE;&#x770B;&#x3002;">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Opacity="0.72"
+                                        Text="?" />
                                 </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
+                            </Grid>
+                        </StackPanel>
 
-            <Border Style="{StaticResource CardSurfaceStyle}">
-                <StackPanel Spacing="12">
-                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="最近出库记录" />
+                        <ListView
+                            ItemsSource="{x:Bind ViewModel.RecentRecords, Mode=OneWay}"
+                            SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Margin" Value="0" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:OutboundRecordModel">
+                                    <Border Style="{StaticResource WorkbenchRecordCardStyle}">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1.05*" />
+                                                <ColumnDefinition Width="1.05*" />
+                                                <ColumnDefinition Width="1.45*" />
+                                                <ColumnDefinition Width="0.95*" />
+                                                <ColumnDefinition Width="0.95*" />
+                                                <ColumnDefinition Width="0.95*" />
+                                            </Grid.ColumnDefinitions>
 
-                    <Grid ColumnSpacing="12" Padding="0,0,0,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="2*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Style="{StaticResource TableHeaderTextStyle}" Text="时间" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource TableHeaderTextStyle}" Text="客户" />
-                        <TextBlock Grid.Column="2" Style="{StaticResource TableHeaderTextStyle}" Text="分类" />
-                        <TextBlock Grid.Column="3" Style="{StaticResource TableHeaderTextStyle}" Text="数量" />
-                        <TextBlock Grid.Column="4" Style="{StaticResource TableHeaderTextStyle}" Text="单价" />
-                        <TextBlock Grid.Column="5" Style="{StaticResource TableHeaderTextStyle}" Text="总收入" />
-                    </Grid>
+                                            <StackPanel Grid.Column="0" Spacing="4">
+                                                <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x65F6;&#x95F4;" />
+                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind TimestampText}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x5BA2;&#x6237;" />
+                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind CustomerDisplayName}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" Spacing="4">
+                                                <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x5206;&#x7C7B;" />
+                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind CategoryName}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Spacing="4">
+                                                <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x6570;&#x91CF;" />
+                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind QuantityText}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="4" Spacing="4">
+                                                <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x5355;&#x4EF7;" />
+                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind UnitPriceText}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="5" Spacing="4">
+                                                <TextBlock Style="{StaticResource WorkbenchSectionCaptionTextStyle}" Text="&#x603B;&#x6536;&#x5165;" />
+                                                <TextBlock FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" Text="{x:Bind TotalRevenueText}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
 
-                    <ListView
-                        ItemsSource="{x:Bind ViewModel.RecentRecords, Mode=OneWay}"
-                        SelectionMode="None">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="models:OutboundRecordModel">
-                                <Grid ColumnSpacing="12" Padding="0,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="2*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <TextBlock Grid.Column="0" Text="{x:Bind TimestampText}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="{x:Bind CustomerDisplayName}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="{x:Bind CategoryName}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="3" Text="{x:Bind QuantityText}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="4" Text="{x:Bind UnitPriceText}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="5" Text="{x:Bind TotalRevenueText}" VerticalAlignment="Center" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        Opacity="0.72"
-                        Text="还没有出库记录。完成第一笔出库后会显示在这里。"
-                        Visibility="{x:Bind ViewModel.RecentRecordsEmptyVisibility, Mode=OneWay}" />
-                </StackPanel>
-            </Border>
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource WorkbenchSupportingTextStyle}"
+                            Text="&#x8FD8;&#x6CA1;&#x6709;&#x51FA;&#x5E93;&#x8BB0;&#x5F55;&#x3002;&#x5B8C;&#x6210;&#x7B2C;&#x4E00;&#x7B14;&#x51FA;&#x5E93;&#x540E;&#x4F1A;&#x663E;&#x793A;&#x5728;&#x8FD9;&#x91CC;&#x3002;"
+                            Visibility="{x:Bind ViewModel.RecentRecordsEmptyVisibility, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
         </StackPanel>
     </ScrollViewer>
 </Page>

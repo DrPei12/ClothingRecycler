@@ -16,10 +16,11 @@ namespace ClothingRecycler.Desktop.Controls
         {
             _item = item;
 
-            Title = title ?? $"\u8C03\u6574\u5E93\u5B58 - {item.Name}";
+            Title = title ?? $"\u624B\u52A8\u8C03\u6574\u5E93\u5B58 - {item.Name}";
             PrimaryButtonText = primaryButtonText ?? "\u4FDD\u5B58\u8C03\u6574";
             CloseButtonText = "\u53D6\u6D88";
             DefaultButton = ContentDialogButton.Primary;
+            MinWidth = 520;
             PrimaryButtonClick += OnPrimaryButtonClick;
 
             _validationInfoBar = new InfoBar
@@ -41,103 +42,65 @@ namespace ClothingRecycler.Desktop.Controls
                 AcceptsReturn = true,
                 PlaceholderText = "\u4F8B\u5982\uFF1A\u76D8\u70B9\u5DEE\u5F02\u3001\u7834\u635F\u3001\u8865\u5F55\u6570\u636E",
                 Text = defaultReason ?? string.Empty,
-                TextWrapping = TextWrapping.WrapWholeWords
+                TextWrapping = TextWrapping.Wrap
             };
 
-            Content = new StackPanel
+            var root = new StackPanel
             {
-                Spacing = 12,
-                Children =
-                {
-                    _validationInfoBar,
-                    new StackPanel
-                    {
-                        Spacing = 4,
-                        Children =
-                        {
-                            new TextBlock
-                            {
-                                Opacity = 0.72,
-                                Text = "\u5206\u7C7B"
-                            },
-                            new TextBlock
-                            {
-                                FontSize = 18,
-                                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                                Text = item.Name
-                            }
-                        }
-                    },
-                    new Grid
-                    {
-                        ColumnSpacing = 12,
-                        ColumnDefinitions =
-                        {
-                            new ColumnDefinition(),
-                            new ColumnDefinition()
-                        },
-                        Children =
-                        {
-                            new StackPanel
-                            {
-                                Spacing = 4,
-                                Children =
-                                {
-                                    new TextBlock
-                                    {
-                                        Opacity = 0.72,
-                                        Text = "\u5F53\u524D\u5E93\u5B58"
-                                    },
-                                    new TextBlock
-                                    {
-                                        FontSize = 18,
-                                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                                        Text = item.DisplayStockText
-                                    }
-                                }
-                            },
-                            CreateAdjustedQuantityPanel()
-                        }
-                    },
-                    new StackPanel
-                    {
-                        Spacing = 4,
-                        Children =
-                        {
-                            new TextBlock
-                            {
-                                Opacity = 0.72,
-                                Text = "\u8C03\u6574\u539F\u56E0"
-                            },
-                            _reasonTextBox
-                        }
-                    },
-                    new TextBlock
-                    {
-                        Opacity = 0.72,
-                        Text = "\u8FD9\u4E2A\u64CD\u4F5C\u4F1A\u76F4\u63A5\u4FEE\u6B63\u5F53\u524D\u5206\u7C7B\u5E93\u5B58\uFF0C\u5E76\u7559\u5B58\u624B\u52A8\u8C03\u6574\u8BB0\u5F55\u3002",
-                        TextWrapping = TextWrapping.WrapWholeWords
-                    }
-                }
+                Spacing = 12
             };
+            root.Children.Add(_validationInfoBar);
+            root.Children.Add(CreateReadOnlyField("\u5206\u7C7B", item.Name, emphasize: true));
+            root.Children.Add(CreateReadOnlyField("\u5F53\u524D\u5E93\u5B58", item.DisplayStockText, emphasize: true));
+            root.Children.Add(CreateEditableField("\u8C03\u6574\u540E\u5E93\u5B58", _adjustedQuantityBox));
+            root.Children.Add(CreateEditableField("\u8C03\u6574\u539F\u56E0", _reasonTextBox));
+            root.Children.Add(new TextBlock
+            {
+                Opacity = 0.72,
+                Text = "\u624B\u52A8\u8C03\u6574\u4F1A\u76F4\u63A5\u628A\u5F53\u524D\u5206\u7C7B\u5E93\u5B58\u6539\u6210\u4F60\u586B\u5199\u7684\u503C\uFF0C\u5E76\u7559\u4E0B\u4E00\u7B14\u624B\u52A8\u8C03\u6574\u8BB0\u5F55\u3002",
+                TextWrapping = TextWrapping.WrapWholeWords
+            });
+
+            Content = root;
         }
 
         public StockAdjustmentInputModel? Result { get; private set; }
 
-        private FrameworkElement CreateAdjustedQuantityPanel()
+        private static FrameworkElement CreateReadOnlyField(string label, string value, bool emphasize = false)
         {
             var panel = new StackPanel
             {
                 Spacing = 4
             };
-            Grid.SetColumn(panel, 1);
 
             panel.Children.Add(new TextBlock
             {
                 Opacity = 0.72,
-                Text = "\u8C03\u6574\u540E\u5E93\u5B58"
+                Text = label
             });
-            panel.Children.Add(_adjustedQuantityBox);
+            panel.Children.Add(new TextBlock
+            {
+                Text = value,
+                FontSize = emphasize ? 18 : 14,
+                FontWeight = emphasize ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal
+            });
+
+            return panel;
+        }
+
+        private static FrameworkElement CreateEditableField(string label, FrameworkElement input)
+        {
+            var panel = new StackPanel
+            {
+                Spacing = 4
+            };
+
+            panel.Children.Add(new TextBlock
+            {
+                Opacity = 0.72,
+                Text = label
+            });
+            panel.Children.Add(input);
 
             return panel;
         }
@@ -152,14 +115,9 @@ namespace ClothingRecycler.Desktop.Controls
                 return;
             }
 
-            if (_item.Category.UnitType == WeightUnit.Piece)
-            {
-                adjustedQuantity = Math.Round(adjustedQuantity);
-            }
-            else
-            {
-                adjustedQuantity = Math.Round(adjustedQuantity, 2);
-            }
+            adjustedQuantity = _item.Category.UnitType == WeightUnit.Piece
+                ? Math.Round(adjustedQuantity)
+                : Math.Round(adjustedQuantity, 2);
 
             if (Math.Abs(adjustedQuantity - _item.Category.DisplayStock) < 0.0001)
             {
