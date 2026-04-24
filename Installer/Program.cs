@@ -489,7 +489,7 @@ internal static class Program
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         if (version is null)
         {
-            return "1.0.5";
+            return "1.0.6";
         }
 
         return $"{version.Major}.{version.Minor}.{version.Build}";

@@ -8,9 +8,12 @@ namespace ClothingRecycler.Desktop.Pages
 {
     public sealed partial class InboundPage : Page
     {
+        private readonly AiDraftHandoffService _aiDraftHandoffService;
+
         public InboundPage()
         {
             ViewModel = App.GetService<InboundViewModel>();
+            _aiDraftHandoffService = App.GetService<AiDraftHandoffService>();
             InitializeComponent();
             Loaded += OnLoaded;
         }
@@ -20,6 +23,17 @@ namespace ClothingRecycler.Desktop.Pages
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             await ViewModel.LoadAsync();
+
+            var pendingRequest = _aiDraftHandoffService.Consume(AiDraftOperation.Inbound);
+            if (pendingRequest is not null)
+            {
+                await ViewModel.ApplyAiSuggestionAsync(pendingRequest.Suggestion);
+
+                if (pendingRequest.LaunchMode == AiDraftLaunchMode.ConfirmationPreview)
+                {
+                    await ShowInboundConfirmationAsync();
+                }
+            }
         }
 
         private async void OnRefreshClick(object sender, RoutedEventArgs e)
@@ -28,6 +42,11 @@ namespace ClothingRecycler.Desktop.Pages
         }
 
         private async void OnSubmitClick(object sender, RoutedEventArgs e)
+        {
+            await ShowInboundConfirmationAsync();
+        }
+
+        private async Task ShowInboundConfirmationAsync()
         {
             try
             {
@@ -43,17 +62,22 @@ namespace ClothingRecycler.Desktop.Pages
             }
             catch (Exception ex)
             {
-                var dialog = new ContentDialog
-                {
-                    XamlRoot = Content.XamlRoot,
-                    Title = "\u5165\u5E93\u5931\u8D25",
-                    CloseButtonText = "\u786E\u5B9A",
-                    DefaultButton = ContentDialogButton.Close,
-                    Content = ex.Message
-                };
-
-                await dialog.ShowAsync();
+                await ShowErrorDialogAsync("\u5165\u5E93\u5931\u8D25", ex.Message);
             }
+        }
+
+        private async Task ShowErrorDialogAsync(string title, string message)
+        {
+            var dialog = new ContentDialog
+            {
+                XamlRoot = Content.XamlRoot,
+                Title = title,
+                CloseButtonText = "\u786E\u5B9A",
+                DefaultButton = ContentDialogButton.Close,
+                Content = message
+            };
+
+            await dialog.ShowAsync();
         }
 
         private void OnAddCategoryEntryClick(object sender, RoutedEventArgs e)

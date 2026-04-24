@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 
 using ClothingRecycler.Desktop.Models;
 using ClothingRecycler.Desktop.Services;
+using ClothingRecycler.Desktop.ViewModels;
 
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -649,6 +650,45 @@ public sealed class LocalDatabaseServiceTests
         Assert.Equal(9, memories[0].Price, 3);
     }
 
+    [Fact]
+    public async Task ApplyAiSuggestionAsync_PreservesAiInboundUnitPrice()
+    {
+        await using var scope = new TestScope();
+        await scope.InitializeAsync();
+
+        var categoryId = await scope.CreateCategoryAsync("夏装", WeightUnit.Jin, buyPrice: 5.2, sellPrice: 12);
+        var agentService = new LocalAiDraftAgentService(
+            new FakeAiBusinessContextSource([], []),
+            [new NoopLocalAiProvider()],
+            scope.Logger);
+        var viewModel = new InboundViewModel(scope.Service, agentService);
+
+        await viewModel.LoadAsync(clearDraft: true);
+        await viewModel.ApplyAiSuggestionAsync(new AiOrderDraftSuggestion
+        {
+            Operation = AiDraftOperation.Inbound,
+            ProviderKind = AiLocalProviderKind.HuggingFaceUltravoxPython,
+            CustomerName = "王姐",
+            Lines =
+            [
+                new AiOrderDraftLineSuggestion
+                {
+                    ExistingCategoryId = categoryId,
+                    CategoryName = "夏装",
+                    Quantity = 12,
+                    InputUnitType = WeightUnit.Jin,
+                    UnitPrice = 3.8
+                }
+            ]
+        });
+
+        var entry = Assert.Single(viewModel.CategoryEntries);
+        Assert.Equal("王姐", viewModel.NewCustomerName);
+        Assert.Equal(12d, entry.Quantity, 3);
+        Assert.Equal(WeightUnit.Jin, entry.SelectedInputUnit);
+        Assert.Equal(3.8d, entry.UnitPrice, 3);
+    }
+
     private sealed class TestScope : IAsyncDisposable
     {
         private readonly string _rootPath = Path.Combine(Path.GetTempPath(), "ClothingRecyclerTests", Guid.NewGuid().ToString("N"));
@@ -808,6 +848,43 @@ public sealed class LocalDatabaseServiceTests
             }
 
             return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class FakeAiBusinessContextSource : IAiBusinessContextSource
+    {
+        private readonly IReadOnlyList<CategoryModel> _categories;
+        private readonly IReadOnlyList<CustomerModel> _customers;
+
+        public FakeAiBusinessContextSource(IReadOnlyList<CategoryModel> categories, IReadOnlyList<CustomerModel> customers)
+        {
+            _categories = categories;
+            _customers = customers;
+        }
+
+        public Task<IReadOnlyList<CategoryModel>> GetActiveCategoriesAsync() => Task.FromResult(_categories);
+
+        public Task<IReadOnlyList<CustomerModel>> GetCustomersAsync() => Task.FromResult(_customers);
+    }
+
+    private sealed class NoopLocalAiProvider : ILocalAiProvider
+    {
+        public AiLocalProviderKind Kind => AiLocalProviderKind.HuggingFaceUltravoxPython;
+
+        public Task<AiProviderProbeResult> ProbeAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new AiProviderProbeResult
+            {
+                Kind = Kind,
+                IsAvailable = true,
+                Summary = "noop",
+                Detail = string.Empty
+            });
+        }
+
+        public Task<string> CompleteAsync(AiCompletionRequest request, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("The noop provider should not be used in this test.");
         }
     }
 }

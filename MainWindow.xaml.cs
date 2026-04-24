@@ -9,6 +9,7 @@ namespace ClothingRecycler.Desktop
         private readonly Dictionary<string, NavigationTarget> _navigationTargets = new()
         {
             ["dashboard"] = new(typeof(DashboardPage), "\u4EEA\u8868\u76D8"),
+            ["ai"] = new(typeof(AiAssistantPage), "AI (Beta)"),
             ["inbound"] = new(typeof(InboundPage), "\u5165\u5E93"),
             ["outbound"] = new(typeof(OutboundPage), "\u51FA\u5E93"),
             ["stock"] = new(typeof(StockPage), "\u5E93\u5B58"),
@@ -19,13 +20,16 @@ namespace ClothingRecycler.Desktop
             ["settings"] = new(typeof(SettingsPage), "\u8BBE\u7F6E"),
         };
         private readonly AppUiSettingsService _uiSettingsService;
+        private readonly ShellNavigationService _shellNavigationService;
         private string _currentNavigationTag = "dashboard";
 
-        public MainWindow()
+        public MainWindow(ShellNavigationService shellNavigationService)
         {
             InitializeComponent();
+            _shellNavigationService = shellNavigationService;
             _uiSettingsService = App.GetService<AppUiSettingsService>();
             _uiSettingsService.FontSizePresetChanged += OnFontSizePresetChanged;
+            _shellNavigationService.RegisterNavigator(SelectAndNavigateTo);
             Title = "\u8863\u7269\u56DE\u6536\u7BA1\u7406";
             ApplyShellFontSizing();
             ConfigureWindow();
@@ -87,6 +91,24 @@ namespace ClothingRecycler.Desktop
             }
         }
 
+        private bool SelectAndNavigateTo(string tag)
+        {
+            var targetItem = FindNavigationItem(tag);
+            if (targetItem is null)
+            {
+                return false;
+            }
+
+            if (!ReferenceEquals(RootNavigationView.SelectedItem, targetItem))
+            {
+                RootNavigationView.SelectedItem = targetItem;
+                return true;
+            }
+
+            NavigateTo(tag, forceReload: true);
+            return true;
+        }
+
         private void NavigateTo(string tag, bool forceReload = false)
         {
             if (!_navigationTargets.TryGetValue(tag, out var target))
@@ -126,6 +148,14 @@ namespace ClothingRecycler.Desktop
                 RootNavigationView.FontSize = bodySize;
                 ContentFrame.FontSize = bodySize;
             }
+        }
+
+        private NavigationViewItem? FindNavigationItem(string tag)
+        {
+            return RootNavigationView.MenuItems
+                    .OfType<NavigationViewItem>()
+                    .Concat(RootNavigationView.FooterMenuItems.OfType<NavigationViewItem>())
+                    .FirstOrDefault(item => string.Equals(item.Tag?.ToString(), tag, StringComparison.OrdinalIgnoreCase));
         }
 
         private sealed record NavigationTarget(Type PageType, string Header, object? Parameter = null);

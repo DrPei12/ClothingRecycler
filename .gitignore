@@ -22,3 +22,7 @@ Installer/obj/
 output/*
 !output/pdf/
 !output/pdf/*.pdf
+
+# Python cache
+__pycache__/
+*.pyc

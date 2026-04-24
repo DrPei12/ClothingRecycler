@@ -2,9 +2,12 @@ namespace ClothingRecycler.Desktop.Pages
 {
     public sealed partial class OutboundPage : Page
     {
+        private readonly AiDraftHandoffService _aiDraftHandoffService;
+
         public OutboundPage()
         {
             ViewModel = App.GetService<OutboundViewModel>();
+            _aiDraftHandoffService = App.GetService<AiDraftHandoffService>();
             InitializeComponent();
             Loaded += OnLoaded;
         }
@@ -14,6 +17,27 @@ namespace ClothingRecycler.Desktop.Pages
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             await ViewModel.LoadAsync();
+
+            var pendingRequest = _aiDraftHandoffService.Consume(AiDraftOperation.Outbound);
+            if (pendingRequest is not null)
+            {
+                await ViewModel.ApplyAiSuggestionAsync(pendingRequest.Suggestion);
+
+                if (pendingRequest.LaunchMode == AiDraftLaunchMode.ConfirmationPreview)
+                {
+                    var entry = ResolveAutoSubmitEntry();
+                    if (entry is null)
+                    {
+                        await ShowErrorDialogAsync(
+                            "\u51FA\u5E93\u5931\u8D25",
+                            "AI \u8349\u7A3F\u8FD8\u4E0D\u5B8C\u6574\uff0C\u6682\u65F6\u65E0\u6CD5\u76F4\u63A5\u521B\u5EFA\u51FA\u5E93\u8BA2\u5355\u3002\u8BF7\u5148\u6253\u5F00\u51FA\u5E93\u9875\u8865\u5145\u5FC5\u8981\u4FE1\u606F\u3002");
+                    }
+                    else
+                    {
+                        await ShowOutboundConfirmationAsync(entry);
+                    }
+                }
+            }
         }
 
         private async void OnRefreshClick(object sender, RoutedEventArgs e)
@@ -36,6 +60,11 @@ namespace ClothingRecycler.Desktop.Pages
                 return;
             }
 
+            await ShowOutboundConfirmationAsync(entry);
+        }
+
+        private async Task ShowOutboundConfirmationAsync(OutboundCategoryDraftModel entry)
+        {
             try
             {
                 var confirmation = await ViewModel.SubmitAsync(entry);
@@ -48,17 +77,28 @@ namespace ClothingRecycler.Desktop.Pages
             }
             catch (Exception ex)
             {
-                var dialog = new ContentDialog
-                {
-                    XamlRoot = Content.XamlRoot,
-                    Title = "\u51FA\u5E93\u5931\u8D25",
-                    CloseButtonText = "\u786E\u5B9A",
-                    DefaultButton = ContentDialogButton.Close,
-                    Content = ex.Message
-                };
-
-                await dialog.ShowAsync();
+                await ShowErrorDialogAsync("\u51FA\u5E93\u5931\u8D25", ex.Message);
             }
+        }
+
+        private OutboundCategoryDraftModel? ResolveAutoSubmitEntry()
+        {
+            return ViewModel.CategoryEntries.FirstOrDefault(entry => entry.IsExpanded && entry.CanSubmit)
+                ?? ViewModel.CategoryEntries.FirstOrDefault(entry => entry.CanSubmit);
+        }
+
+        private async Task ShowErrorDialogAsync(string title, string message)
+        {
+            var dialog = new ContentDialog
+            {
+                XamlRoot = Content.XamlRoot,
+                Title = title,
+                CloseButtonText = "\u786E\u5B9A",
+                DefaultButton = ContentDialogButton.Close,
+                Content = message
+            };
+
+            await dialog.ShowAsync();
         }
 
         private static bool TryGetEntry(object sender, out OutboundCategoryDraftModel entry)

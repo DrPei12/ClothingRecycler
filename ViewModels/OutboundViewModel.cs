@@ -10,15 +10,17 @@ namespace ClothingRecycler.Desktop.ViewModels
             double UnitPrice);
 
         private readonly LocalDatabaseService _databaseService;
+        private readonly LocalAiDraftAgentService _localAiDraftAgentService;
         private readonly List<CustomerCategoryPriceModel> _priceMemories = [];
 
         private string _todayOutboundAmount = "\u00A50";
         private string _categoryCountText = "0";
         private string _recentRecordCountText = "0";
 
-        public OutboundViewModel(LocalDatabaseService databaseService)
+        public OutboundViewModel(LocalDatabaseService databaseService, LocalAiDraftAgentService localAiDraftAgentService)
         {
             _databaseService = databaseService;
+            _localAiDraftAgentService = localAiDraftAgentService;
             Title = "\u51FA\u5E93";
         }
 
@@ -109,6 +111,71 @@ namespace ClothingRecycler.Desktop.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        public async Task<AiOrderDraftSuggestion> SuggestAndApplyAiDraftAsync(
+            string userInput,
+            AiLocalProviderKind providerKind,
+            CancellationToken cancellationToken = default)
+        {
+            if (CategoryEntries.Count == 0 || Customers.Count == 0)
+            {
+                await LoadAsync(clearDraft: false);
+            }
+
+            var suggestion = await _localAiDraftAgentService.SuggestOutboundDraftAsync(userInput, providerKind, cancellationToken);
+            await ApplyAiSuggestionAsync(suggestion);
+            return suggestion;
+        }
+
+        public async Task ApplyAiSuggestionAsync(AiOrderDraftSuggestion suggestion)
+        {
+            ArgumentNullException.ThrowIfNull(suggestion);
+
+            if (suggestion.Operation != AiDraftOperation.Outbound)
+            {
+                throw new InvalidOperationException("AI suggestion operation does not match outbound drafting.");
+            }
+
+            await LoadAsync(clearDraft: true);
+
+            var appliedEntries = new List<OutboundCategoryDraftModel>();
+            var appliedCategoryIds = new HashSet<long>();
+
+            foreach (var line in suggestion.Lines)
+            {
+                var entry = ResolveEntryForSuggestion(line);
+                if (entry is null || !appliedCategoryIds.Add(entry.CategoryId))
+                {
+                    continue;
+                }
+
+                ApplyAiCustomerSuggestion(entry, suggestion);
+
+                var inputUnit = line.InputUnitType.HasValue && WeightUnitHelper.SupportsInputUnit(entry.Category.UnitType, line.InputUnitType.Value)
+                    ? line.InputUnitType.Value
+                    : entry.Category.UnitType;
+
+                entry.RestoreDraft(
+                    Math.Max(0, line.Quantity ?? 0),
+                    Math.Max(0, line.UnitPrice ?? 0),
+                    inputUnit);
+
+                appliedEntries.Add(entry);
+            }
+
+            foreach (var entry in CategoryEntries)
+            {
+                entry.IsExpanded = false;
+            }
+
+            if (appliedEntries.Count > 0)
+            {
+                appliedEntries[0].IsExpanded = true;
+            }
+
+            var skippedLineCount = Math.Max(0, suggestion.Lines.Count - appliedEntries.Count);
+            StatusMessage = BuildAiDraftStatusMessage("AI outbound draft applied.", appliedEntries.Count, skippedLineCount, suggestion);
         }
 
         public void ToggleEntry(OutboundCategoryDraftModel entry)
@@ -224,6 +291,79 @@ namespace ClothingRecycler.Desktop.ViewModels
                 var rememberedPrice = GetRememberedPrice(entry) ?? entry.Category.SellPrice;
                 entry.ApplySuggestedUnitPrice(rememberedPrice);
             }
+        }
+
+        private void ApplyAiCustomerSuggestion(OutboundCategoryDraftModel entry, AiOrderDraftSuggestion suggestion)
+        {
+            entry.SelectedCustomer = null;
+            entry.NewCustomerName = string.Empty;
+
+            CustomerModel? matchedCustomer = null;
+            if (suggestion.ExistingCustomerId.HasValue)
+            {
+                matchedCustomer = Customers.FirstOrDefault(customer => customer.Id == suggestion.ExistingCustomerId.Value);
+            }
+
+            matchedCustomer ??= Customers.FirstOrDefault(customer =>
+                string.Equals(customer.Name, suggestion.CustomerName?.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if (matchedCustomer is not null)
+            {
+                entry.SelectedCustomer = matchedCustomer;
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(suggestion.CustomerName))
+            {
+                entry.NewCustomerName = suggestion.CustomerName.Trim();
+            }
+        }
+
+        private OutboundCategoryDraftModel? ResolveEntryForSuggestion(AiOrderDraftLineSuggestion line)
+        {
+            if (line.ExistingCategoryId.HasValue)
+            {
+                return CategoryEntries.FirstOrDefault(entry => entry.CategoryId == line.ExistingCategoryId.Value);
+            }
+
+            if (string.IsNullOrWhiteSpace(line.CategoryName))
+            {
+                return null;
+            }
+
+            return CategoryEntries.FirstOrDefault(entry =>
+                       string.Equals(entry.CategoryName, line.CategoryName.Trim(), StringComparison.OrdinalIgnoreCase))
+                   ?? CategoryEntries.FirstOrDefault(entry =>
+                       entry.CategoryName.Contains(line.CategoryName.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string BuildAiDraftStatusMessage(
+            string prefix,
+            int appliedLineCount,
+            int skippedLineCount,
+            AiOrderDraftSuggestion suggestion)
+        {
+            var parts = new List<string>
+            {
+                $"{prefix} Applied {appliedLineCount} line(s)."
+            };
+
+            if (skippedLineCount > 0)
+            {
+                parts.Add($"{skippedLineCount} line(s) still need manual review.");
+            }
+
+            if (suggestion.MissingFields.Count > 0)
+            {
+                parts.Add($"Missing: {string.Join(", ", suggestion.MissingFields)}.");
+            }
+
+            if (suggestion.Warnings.Count > 0)
+            {
+                parts.Add($"Warnings: {string.Join(" | ", suggestion.Warnings.Take(3))}");
+            }
+
+            return string.Join(" ", parts);
         }
 
         private double? GetRememberedPrice(OutboundCategoryDraftModel entry)

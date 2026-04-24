@@ -3,6 +3,7 @@ namespace ClothingRecycler.Desktop.ViewModels
     public sealed class InboundViewModel : ViewModelBase
     {
         private readonly LocalDatabaseService _databaseService;
+        private readonly LocalAiDraftAgentService _localAiDraftAgentService;
         private readonly List<CustomerCategoryPriceModel> _priceMemories = [];
         private readonly record struct InboundDraftSnapshot(long? CategoryId, WeightUnit InputUnitType, double Quantity, double UnitPrice);
 
@@ -12,9 +13,10 @@ namespace ClothingRecycler.Desktop.ViewModels
         private string _categoryCountText = "0";
         private string _recentRecordCountText = "0";
 
-        public InboundViewModel(LocalDatabaseService databaseService)
+        public InboundViewModel(LocalDatabaseService databaseService, LocalAiDraftAgentService localAiDraftAgentService)
         {
             _databaseService = databaseService;
+            _localAiDraftAgentService = localAiDraftAgentService;
             Title = "\u5165\u5E93";
         }
 
@@ -209,6 +211,41 @@ namespace ClothingRecycler.Desktop.ViewModels
             }
         }
 
+        public async Task<AiOrderDraftSuggestion> SuggestAndApplyAiDraftAsync(
+            string userInput,
+            AiLocalProviderKind providerKind,
+            CancellationToken cancellationToken = default)
+        {
+            if (Categories.Count == 0 || Customers.Count == 0)
+            {
+                await LoadAsync(clearDraft: false);
+            }
+
+            var suggestion = await _localAiDraftAgentService.SuggestInboundDraftAsync(userInput, providerKind, cancellationToken);
+            await ApplyAiSuggestionAsync(suggestion);
+            return suggestion;
+        }
+
+        public async Task ApplyAiSuggestionAsync(AiOrderDraftSuggestion suggestion)
+        {
+            ArgumentNullException.ThrowIfNull(suggestion);
+
+            if (suggestion.Operation != AiDraftOperation.Inbound)
+            {
+                throw new InvalidOperationException("AI suggestion operation does not match inbound drafting.");
+            }
+
+            await LoadAsync(clearDraft: true);
+
+            ApplyAiCustomerSuggestion(suggestion);
+            var snapshots = BuildAiDraftSnapshots(suggestion);
+            RebuildCategoryEntries(Categories, snapshots, clearDraft: false);
+
+            var skippedLineCount = Math.Max(0, suggestion.Lines.Count - snapshots.Count);
+            StatusMessage = BuildAiDraftStatusMessage("AI inbound draft applied.", snapshots.Count, skippedLineCount, suggestion);
+            RaiseComputedStateChanged();
+        }
+
         public async Task<PendingInboundOrderModel> PrepareSubmitAsync()
         {
             var customerName = ResolveCustomerNameOrThrow();
@@ -304,6 +341,106 @@ namespace ClothingRecycler.Desktop.ViewModels
                 var rememberedPrice = GetRememberedPrice(entry.CategoryId.Value) ?? entry.SelectedCategory.BuyPrice;
                 entry.ApplySuggestedUnitPrice(rememberedPrice);
             }
+        }
+
+        private void ApplyAiCustomerSuggestion(AiOrderDraftSuggestion suggestion)
+        {
+            SelectedCustomer = null;
+            NewCustomerName = string.Empty;
+
+            CustomerModel? matchedCustomer = null;
+            if (suggestion.ExistingCustomerId.HasValue)
+            {
+                matchedCustomer = Customers.FirstOrDefault(customer => customer.Id == suggestion.ExistingCustomerId.Value);
+            }
+
+            matchedCustomer ??= Customers.FirstOrDefault(customer =>
+                string.Equals(customer.Name, suggestion.CustomerName?.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if (matchedCustomer is not null)
+            {
+                SelectedCustomer = matchedCustomer;
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(suggestion.CustomerName))
+            {
+                NewCustomerName = suggestion.CustomerName.Trim();
+            }
+        }
+
+        private List<InboundDraftSnapshot> BuildAiDraftSnapshots(AiOrderDraftSuggestion suggestion)
+        {
+            var snapshots = new List<InboundDraftSnapshot>();
+            var addedCategoryIds = new HashSet<long>();
+
+            foreach (var line in suggestion.Lines)
+            {
+                var category = ResolveCategoryForSuggestion(line);
+                if (category is null || !addedCategoryIds.Add(category.Id))
+                {
+                    continue;
+                }
+
+                var inputUnit = line.InputUnitType.HasValue && WeightUnitHelper.SupportsInputUnit(category.UnitType, line.InputUnitType.Value)
+                    ? line.InputUnitType.Value
+                    : category.UnitType;
+
+                snapshots.Add(new InboundDraftSnapshot(
+                    category.Id,
+                    inputUnit,
+                    Math.Max(0, line.Quantity ?? 0),
+                    Math.Max(0, line.UnitPrice ?? 0)));
+            }
+
+            return snapshots;
+        }
+
+        private CategoryModel? ResolveCategoryForSuggestion(AiOrderDraftLineSuggestion line)
+        {
+            if (line.ExistingCategoryId.HasValue)
+            {
+                return Categories.FirstOrDefault(category => category.Id == line.ExistingCategoryId.Value);
+            }
+
+            if (string.IsNullOrWhiteSpace(line.CategoryName))
+            {
+                return null;
+            }
+
+            return Categories.FirstOrDefault(category =>
+                       string.Equals(category.Name, line.CategoryName.Trim(), StringComparison.OrdinalIgnoreCase))
+                   ?? Categories.FirstOrDefault(category =>
+                       category.Name.Contains(line.CategoryName.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string BuildAiDraftStatusMessage(
+            string prefix,
+            int appliedLineCount,
+            int skippedLineCount,
+            AiOrderDraftSuggestion suggestion)
+        {
+            var parts = new List<string>
+            {
+                $"{prefix} Applied {appliedLineCount} line(s)."
+            };
+
+            if (skippedLineCount > 0)
+            {
+                parts.Add($"{skippedLineCount} line(s) still need manual review.");
+            }
+
+            if (suggestion.MissingFields.Count > 0)
+            {
+                parts.Add($"Missing: {string.Join(", ", suggestion.MissingFields)}.");
+            }
+
+            if (suggestion.Warnings.Count > 0)
+            {
+                parts.Add($"Warnings: {string.Join(" | ", suggestion.Warnings.Take(3))}");
+            }
+
+            return string.Join(" ", parts);
         }
 
         private double? GetRememberedPrice(long categoryId)

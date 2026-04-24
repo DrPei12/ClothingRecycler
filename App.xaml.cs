@@ -63,8 +63,19 @@ namespace ClothingRecycler.Desktop
             services.AddSingleton<AppLogger>();
             services.AddSingleton<AppUiSettingsService>();
             services.AddSingleton<LocalDatabaseService>();
+            services.AddSingleton<ShellNavigationService>();
+            services.AddSingleton<IAiBusinessContextSource, LocalDatabaseAiBusinessContextSource>();
+            services.AddSingleton<AiDraftHandoffService>();
+            services.AddSingleton<ILocalAiProvider, HuggingFaceUltravoxPythonProvider>();
+            services.AddSingleton<ILocalAiProvider, OllamaLocalAiProvider>();
+            services.AddSingleton<LocalAiDraftAgentService>();
+            services.AddSingleton<AiDraftNormalizationToolService>();
+            services.AddSingleton<AiWorkflowToolService>();
+            services.AddSingleton<AiWorkflowAgentService>();
+            services.AddSingleton<AiVoiceRecordingService>();
             services.AddSingleton<OrderExportService>();
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<AiAssistantViewModel>();
 
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<InboundViewModel>();
