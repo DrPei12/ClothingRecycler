@@ -229,6 +229,7 @@ public sealed class LocalAiDraftAgentService
         return new AiCompletionRequest
         {
             MaxNewTokens = 220,
+            ResponseFormat = AiCompletionResponseFormat.JsonObject,
             Messages = new[]
             {
                 new AiChatMessage { Role = "system", Content = systemPrompt },
@@ -251,6 +252,7 @@ public sealed class LocalAiDraftAgentService
         {
             AudioPath = audioPath,
             MaxNewTokens = 96,
+            ResponseFormat = AiCompletionResponseFormat.Text,
             Messages = new[]
             {
                 new AiChatMessage { Role = "system", Content = systemPrompt },
@@ -307,6 +309,7 @@ public sealed class LocalAiDraftAgentService
         return new AiCompletionRequest
         {
             MaxNewTokens = 180,
+            ResponseFormat = AiCompletionResponseFormat.JsonObject,
             Messages = new[]
             {
                 new AiChatMessage { Role = "system", Content = systemPrompt },

@@ -68,6 +68,10 @@ namespace ClothingRecycler.Desktop
             services.AddSingleton<AiDraftHandoffService>();
             services.AddSingleton<ILocalAiProvider, HuggingFaceUltravoxPythonProvider>();
             services.AddSingleton<ILocalAiProvider, OllamaLocalAiProvider>();
+            services.AddSingleton<ILocalAiProvider, DeepSeekApiProvider>();
+            services.AddSingleton<IAudioTranscriptionProvider, UltravoxLocalAsrProvider>();
+            services.AddSingleton<AiSpeechRecognitionService>();
+            services.AddSingleton<AiLiveSpeechRecognitionService>();
             services.AddSingleton<LocalAiDraftAgentService>();
             services.AddSingleton<AiDraftNormalizationToolService>();
             services.AddSingleton<AiWorkflowToolService>();

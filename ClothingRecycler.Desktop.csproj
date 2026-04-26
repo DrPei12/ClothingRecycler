@@ -16,10 +16,10 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>ClothingRecycler.Desktop</RootNamespace>
-        <Version>1.0.6</Version>
-        <AssemblyVersion>1.0.6.0</AssemblyVersion>
-        <FileVersion>1.0.6.0</FileVersion>
-        <InformationalVersion>1.0.6-local</InformationalVersion>
+        <Version>1.0.7</Version>
+        <AssemblyVersion>1.0.7.0</AssemblyVersion>
+        <FileVersion>1.0.7.0</FileVersion>
+        <InformationalVersion>1.0.7</InformationalVersion>
         <Company>ClothingRecycler</Company>
         <Product>衣物回收管理</Product>
         <Authors>Codex</Authors>
@@ -48,9 +48,9 @@
 
     <ItemGroup>
         <None Remove="ClothingRecycler.Desktop.slnx" />
-        <Compile Remove="ClothingRecycler.Desktop.Tests\\**\\*.cs" />
-        <Compile Remove="Installer\\**\\*.cs" />
-        <Compile Remove="tmp\\**\\*.cs" />
+        <Compile Remove="ClothingRecycler.Desktop.Tests\**\*.cs" />
+        <Compile Remove="Installer\**\*.cs" />
+        <Compile Remove="tmp\**\*.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -64,7 +64,7 @@
         <Manifest Include="$(ApplicationManifest)" />
     </ItemGroup>
 
-    <!-- 
+    <!--
         Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
         Tools extension to be activated for this project even if the Windows App SDK Nuget
         package has not yet been restored.
@@ -73,9 +73,9 @@
         <ProjectCapability Include="Msix"/>
     </ItemGroup>
 
-    <!-- 
-        Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 
-        Explorer "Package and Publish" context menu entry to be enabled for this project even if 
+    <!--
+        Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
+        Explorer "Package and Publish" context menu entry to be enabled for this project even if
         the Windows App SDK Nuget package has not yet been restored.
     -->
     <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">

@@ -20,6 +20,14 @@ public sealed class AiCompletionRequest
     public string? AudioPath { get; init; }
 
     public int MaxNewTokens { get; init; } = 512;
+
+    public AiCompletionResponseFormat ResponseFormat { get; init; } = AiCompletionResponseFormat.Text;
+}
+
+public enum AiCompletionResponseFormat
+{
+    Text,
+    JsonObject
 }
 
 public sealed class AiProviderProbeResult

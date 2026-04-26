@@ -51,7 +51,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <Button Click="OnUseQuickPromptClick" Tag="王姐入库夏装 12 斤，3 块 8" Content="入库示例：夏装 12 斤" />
                                 <Button Click="OnUseQuickPromptClick" Tag="给李老板出库鞋子 3 件，单价 18" Content="出库示例：鞋子 3 件" />
-                                <Button Click="OnUseQuickPromptClick" Tag="陈姐入库牛仔裤 8 公斤，单价 4.2" Content="入库示例：牛仔裤 8 公斤" />
+                                <Button Click="OnUseQuickPromptClick" Tag="刘建斌，羽绒服入库33公斤，每公斤2元" Content="入库示例：羽绒服 33 公斤" />
                             </StackPanel>
                         </ScrollViewer>
                     </StackPanel>
@@ -148,12 +148,13 @@
                             <TextBox
                                 AcceptsReturn="True"
                                 MinHeight="120"
-                                PlaceholderText="直接输入自然语言，例如：王姐入库夏装 12 斤，3 块 8"
+                                PlaceholderText="直接输入自然语言，例如：刘建斌，羽绒服入库33公斤，每公斤2元"
                                 Text="{x:Bind ViewModel.PromptText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 TextWrapping="Wrap" />
                             <Grid ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
@@ -170,15 +171,105 @@
                                     IsEnabled="{x:Bind ViewModel.CanToggleVoiceRecording, Mode=OneWay}" />
                                 <Button
                                     Grid.Column="2"
+                                    Click="OnUploadAudioClick"
+                                    Content="选择音频文件"
+                                    IsEnabled="{x:Bind ViewModel.CanUploadAudioFile, Mode=OneWay}" />
+                                <Button
+                                    Grid.Column="3"
                                     Click="OnSendClick"
                                     Content="发送给 AI"
                                     IsEnabled="{x:Bind ViewModel.CanSend, Mode=OneWay}" />
                             </Grid>
+                            <Border
+                                Padding="14,12"
+                                Background="{ThemeResource LayerFillColorAltBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="18"
+                                Visibility="{x:Bind ViewModel.VoiceFeedbackVisibility, Mode=OneWay}">
+                                <Grid ColumnSpacing="14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel
+                                        Grid.Column="0"
+                                        Width="74"
+                                        Height="52"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Spacing="5">
+                                        <Border
+                                            Width="7"
+                                            Height="{x:Bind ViewModel.VoiceMeterBar1Height, Mode=OneWay}"
+                                            VerticalAlignment="Center"
+                                            Background="{StaticResource BrandBrush}"
+                                            CornerRadius="4" />
+                                        <Border
+                                            Width="7"
+                                            Height="{x:Bind ViewModel.VoiceMeterBar2Height, Mode=OneWay}"
+                                            VerticalAlignment="Center"
+                                            Background="{StaticResource BrandBrush}"
+                                            CornerRadius="4" />
+                                        <Border
+                                            Width="7"
+                                            Height="{x:Bind ViewModel.VoiceMeterBar3Height, Mode=OneWay}"
+                                            VerticalAlignment="Center"
+                                            Background="{StaticResource BrandBrush}"
+                                            CornerRadius="4" />
+                                        <Border
+                                            Width="7"
+                                            Height="{x:Bind ViewModel.VoiceMeterBar4Height, Mode=OneWay}"
+                                            VerticalAlignment="Center"
+                                            Background="{StaticResource BrandBrush}"
+                                            CornerRadius="4" />
+                                        <Border
+                                            Width="7"
+                                            Height="{x:Bind ViewModel.VoiceMeterBar5Height, Mode=OneWay}"
+                                            VerticalAlignment="Center"
+                                            Background="{StaticResource BrandBrush}"
+                                            CornerRadius="4" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Spacing="6">
+                                        <TextBlock
+                                            FontWeight="SemiBold"
+                                            Text="{x:Bind ViewModel.VoiceActivityText, Mode=OneWay}" />
+                                        <ProgressBar
+                                            Maximum="100"
+                                            Value="{x:Bind ViewModel.VoiceLevelPercent, Mode=OneWay}" />
+                                        <TextBlock
+                                            Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                            Text="{x:Bind ViewModel.VoiceActivityDetail, Mode=OneWay}"
+                                            TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        MinWidth="44"
+                                        VerticalAlignment="Center"
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="{x:Bind ViewModel.VoiceLevelText, Mode=OneWay}"
+                                        TextAlignment="Right" />
+                                </Grid>
+                            </Border>
+                            <TextBlock
+                                Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                Text="{x:Bind ViewModel.VoiceCapabilityText, Mode=OneWay}"
+                                TextWrapping="WrapWholeWords"
+                                Visibility="{x:Bind ViewModel.VoiceCapabilityVisibility, Mode=OneWay}" />
                             <TextBlock
                                 Style="{StaticResource WorkbenchSupportingTextStyle}"
                                 Text="{x:Bind ViewModel.VoiceStatusText, Mode=OneWay}"
                                 TextWrapping="WrapWholeWords"
                                 Visibility="{x:Bind ViewModel.VoiceStatusVisibility, Mode=OneWay}" />
+                            <Button
+                                Click="OnOpenSpeechSettingsClick"
+                                Content="打开 Windows 语音设置" />
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -200,14 +291,14 @@
                         </StackPanel>
 
                         <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="本地 Provider" />
+                            <TextBlock Style="{StaticResource MutedTextStyle}" Text="AI Provider" />
                             <ComboBox
                                 DisplayMemberPath="DisplayName"
                                 ItemsSource="{x:Bind ViewModel.ProviderOptions, Mode=OneWay}"
                                 SelectedItem="{x:Bind ViewModel.SelectedProviderOption, Mode=TwoWay}" />
                         </StackPanel>
 
-                        <Button Click="OnRefreshProviderClick" Content="刷新本地运行时状态" />
+                        <Button Click="OnRefreshProviderClick" Content="刷新 Provider 状态" />
 
                         <Border Style="{StaticResource WorkbenchInsetPanelStyle}">
                             <StackPanel Spacing="6">
@@ -220,9 +311,46 @@
                             </StackPanel>
                         </Border>
 
+                        <Border Style="{StaticResource WorkbenchInsetPanelStyle}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Style="{StaticResource MutedTextStyle}" Text="ASR 状态" />
+                                <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.AsrStatusSummary, Mode=OneWay}" />
+                                <TextBlock
+                                    Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                    Text="{x:Bind ViewModel.AsrStatusDetail, Mode=OneWay}"
+                                    TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Style="{StaticResource WorkbenchInsetPanelStyle}"
+                            Visibility="{x:Bind ViewModel.DeepSeekApiSettingsVisibility, Mode=OneWay}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Style="{StaticResource MutedTextStyle}" Text="DEEPSEEK API BETA" />
+                                <TextBlock Style="{StaticResource MutedTextStyle}" Text="Base URL" />
+                                <TextBox
+                                    Text="{x:Bind ViewModel.DeepSeekApiBaseUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Style="{StaticResource MutedTextStyle}" Text="Model" />
+                                <TextBox
+                                    Text="{x:Bind ViewModel.DeepSeekApiModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Style="{StaticResource MutedTextStyle}" Text="API Key (local only)" />
+                                <PasswordBox
+                                    x:Name="DeepSeekApiKeyBox"
+                                    PasswordChanged="OnDeepSeekApiKeyChanged" />
+                                <Button
+                                    Click="OnSaveDeepSeekApiSettingsClick"
+                                    Content="保存 DeepSeek API 配置"
+                                    IsEnabled="{x:Bind ViewModel.CanSaveDeepSeekApiSettings, Mode=OneWay}" />
+                                <TextBlock
+                                    Style="{StaticResource WorkbenchSupportingTextStyle}"
+                                    Text="密钥只保存在本机设置文件，可被环境变量覆盖。DeepSeek API beta 当前先走文本 workflow。"
+                                    TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+                        </Border>
+
                         <TextBlock
                             Style="{StaticResource WorkbenchSupportingTextStyle}"
-                            Text="AI 只会生成草稿，不会直接提交订单或改动库存。"
+                            Text="AI 只会生成草稿或触发确认流，不会绕开确认页直接改库存。"
                             TextWrapping="WrapWholeWords" />
                     </StackPanel>
                 </Border>

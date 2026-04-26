@@ -10,7 +10,7 @@
   <Identity
     Name="28cb5a84-b741-44a4-b9b3-c97666e4953b"
     Publisher="CN=User Name"
-    Version="1.0.1.0" />
+    Version="1.0.7.0" />
 
   <mp:PhoneIdentity PhoneProductId="28cb5a84-b741-44a4-b9b3-c97666e4953b" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -46,6 +46,8 @@
   </Applications>
 
   <Capabilities>
+    <Capability Name="internetClient" />
     <rescap:Capability Name="runFullTrust" />
+    <DeviceCapability Name="microphone" />
   </Capabilities>
 </Package>

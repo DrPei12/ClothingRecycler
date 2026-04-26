@@ -1,3 +1,8 @@
+using Windows.Storage.Pickers;
+using Windows.System;
+
+using WinRT.Interop;
+
 namespace ClothingRecycler.Desktop.Pages
 {
     public sealed partial class AiAssistantPage : Page
@@ -14,6 +19,7 @@ namespace ClothingRecycler.Desktop.Pages
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             await ViewModel.LoadAsync();
+            DeepSeekApiKeyBox.Password = ViewModel.DeepSeekApiKey;
             ScrollConversationToEnd();
         }
 
@@ -34,6 +40,32 @@ namespace ClothingRecycler.Desktop.Pages
             await ViewModel.RefreshProviderStatusAsync();
         }
 
+        private async void OnUploadAudioClick(object sender, RoutedEventArgs e)
+        {
+            var picker = new FileOpenPicker();
+            picker.FileTypeFilter.Add(".wav");
+            InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.GetService<MainWindow>()));
+
+            var file = await picker.PickSingleFileAsync();
+            if (file is null)
+            {
+                return;
+            }
+
+            await ViewModel.TranscribeAudioFileAndSendAsync(file.Path);
+            ScrollConversationToEnd();
+        }
+
+        private async void OnSaveDeepSeekApiSettingsClick(object sender, RoutedEventArgs e)
+        {
+            await ViewModel.SaveDeepSeekApiSettingsAsync();
+        }
+
+        private async void OnOpenSpeechSettingsClick(object sender, RoutedEventArgs e)
+        {
+            await Launcher.LaunchUriAsync(new Uri("ms-settings:privacy-speech"));
+        }
+
         private void OnOpenLatestDraftClick(object sender, RoutedEventArgs e)
         {
             ViewModel.OpenLatestDraftPage();
@@ -50,6 +82,11 @@ namespace ClothingRecycler.Desktop.Pages
             {
                 ViewModel.UseQuickPrompt(prompt);
             }
+        }
+
+        private void OnDeepSeekApiKeyChanged(object sender, RoutedEventArgs e)
+        {
+            ViewModel.UpdateDeepSeekApiKey(DeepSeekApiKeyBox.Password);
         }
 
         private void ScrollConversationToEnd()
